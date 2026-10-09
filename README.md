@@ -1,0 +1,79 @@
+# Androidzy
+
+**Androidzy by [@dznye](https://github.com/dznye)** - a small Windows launcher for the official Android Emulator, with one-click GPU profiles. Android 14 with Google Play, tuned for games.
+
+![Androidzy](docs/screenshot.png)
+
+## Why
+
+On laptops with two GPUs (Intel + NVIDIA/AMD) the emulator can render on the wrong one, or even run OpenGL on one GPU and Vulkan on the other. Androidzy pins both to the GPU you choose, sets up a sensible virtual device, and gets out of the way.
+
+## Features
+
+- **GPU profiles** - Dedicated, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
+- **Fast restarts** - quick-boot snapshots bring Android back in about a second.
+- **Zero setup** - uses the Android SDK you already have from Android Studio, or downloads what it needs from Google on first run.
+- **One small exe** - a single native Windows program (about 60 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
+- Resolution presets, CPU/memory settings, cold boot, factory reset, per-launch logs.
+
+## Requirements
+
+- Windows 10/11 x64
+- Hardware virtualization enabled in the BIOS and the Windows feature **Windows Hypervisor Platform**
+- About 6 GB of free disk space (more if you keep a quick-boot snapshot)
+
+## Getting started
+
+1. Build it (below) or grab `Androidzy.exe` from the Releases page.
+2. Run `Androidzy.exe`.
+   - If an Android SDK with the Android 14 *Google Play* system image is found (Android Studio's default location, `ANDROID_HOME` or `ANDROID_SDK_ROOT`), it is used as is.
+   - Otherwise a **First-run setup** panel offers to download the emulator, platform tools and system image (about 2 GB) from Google, after you accept Google's license.
+3. Pick a GPU profile and press **Launch**.
+
+Settings, the virtual device and any downloaded components live in `%LOCALAPPDATA%\Androidzy`. Put a `sdk` folder next to `Androidzy.exe` and it runs as a portable install instead.
+
+## GPU profiles
+
+| Profile | What it does |
+|---|---|
+| **Dedicated GPU** | Tells Windows to run the emulator on the high-performance GPU and pins Vulkan to the same one. Default on machines with an NVIDIA/AMD card. |
+| **Integrated GPU** | Same, for the power-saving GPU. Cooler and quieter, slower. |
+| **Windows default** | Removes the override; Windows and the emulator choose. |
+| **Software renderer** | SwiftShader/ANGLE on the CPU. Slow; only for broken GPU drivers. |
+
+The override is the same per-app setting as *Settings > System > Display > Graphics*, written under `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` for the emulator executables only. Choose **Windows default** to remove it.
+
+## Command line
+
+```
+Androidzy.exe [--launch] [--profile dedicated|integrated|auto|software]
+              [--cold] [--no-save] [--headless] [--verbose]
+              [--accept-license] [--own-copy]
+```
+
+`--accept-license` starts the first-run download without clicking (you are accepting Google's license by using it). `--own-copy` ignores an existing SDK and downloads a private copy.
+
+## How it works
+
+Androidzy never modifies or bundles the emulator. It writes the AVD config, sets the Windows GPU preference for the emulator's executables, and starts `emulator.exe` with:
+
+- `-gpu host` (or `swangle` for the software profile),
+- `ANDROID_EMU_VK_SELECT_GPU=0` - the Windows preference orders the host GPUs, so index 0 is the pinned GPU. Without it the emulator scores GPUs on its own and can pick a different one for Vulkan than for OpenGL,
+- `ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL=60` so saving a snapshot is not cut short,
+- `-no-metrics`, `-accel on`, and the usual boot and network flags.
+
+## Building
+
+Needs only Windows (the C# compiler is part of the .NET Framework that ships with it):
+
+```powershell
+powershell -ExecutionPolicy Bypass -File build.ps1
+```
+
+The result is `bin\Androidzy.exe`.
+
+## Legal
+
+- Androidzy's own code is released under the [MIT License](LICENSE).
+- **No Google software is included in this repository or in Androidzy's releases.** The Android Emulator, platform tools and system image are downloaded from Google's servers (or taken from your existing SDK) and are licensed to you by Google under the [Android Software Development Kit License Agreement](https://developer.android.com/studio/terms). Please read it; it is between you and Google.
+- Androidzy is an independent project. It is not affiliated with, sponsored by or endorsed by Google. Android, Google Play and the Android robot are trademarks of Google LLC.

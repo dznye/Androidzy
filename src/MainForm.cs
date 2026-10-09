@@ -1,0 +1,502 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.Drawing;
+using System.IO;
+using System.Text;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Windows.Forms;
+
+namespace Androidzy
+{
+    sealed class MainForm : Form
+    {
+        readonly Settings st = Settings.Load();
+        readonly string[] gpus = Host.DetectGpus();
+        readonly Options cli;
+
+        ComboBox cbProfile, cbRes, cbRam;
+        NumericUpDown nudCores;
+        CheckBox chkCold, chkSave, chkWipe;
+        Label lblSub, lblDesc, lblStatus;
+        Button btnLaunch, btnStop;
+        TextBox txtLog;
+
+        // first-run setup
+        GroupBox gbSetup;
+        CheckBox chkLicense;
+        Button btnDownload, btnCancel;
+        ProgressBar prog;
+        Label lblSetupStatus;
+        bool sdkReady, downloading, pendingLaunch;
+        volatile bool cancelDownload;
+
+        // running emulator
+        Process proc;
+        int port;
+        bool booted;
+        string gpuInUse = "";
+        StreamWriter logWriter;
+        readonly List<string> recent = new List<string>();
+
+        public MainForm(Options o)
+        {
+            cli = o;
+            BuildUi();
+            ResolveSdk();
+            pendingLaunch = cli.Launch;
+            Shown += delegate
+            {
+                if (sdkReady) { if (pendingLaunch) { pendingLaunch = false; Launch(); } }
+                else if (cli.AcceptLicense) { chkLicense.Checked = true; StartDownload(); }
+            };
+        }
+
+        // ---- layout --------------------------------------------------------------------------------
+
+        static TableLayoutPanel MakeTable()
+        {
+            TableLayoutPanel t = new TableLayoutPanel();
+            t.Dock = DockStyle.Fill; t.AutoSize = true; t.ColumnCount = 2;
+            t.Padding = new Padding(8, 4, 8, 8);
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 110));
+            t.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            return t;
+        }
+
+        static void AddRow(TableLayoutPanel t, string label, Control c, int height)
+        {
+            int r = t.RowCount++;
+            t.RowStyles.Add(new RowStyle(SizeType.Absolute, height));
+            Label l = new Label();
+            l.Text = label; l.Dock = DockStyle.Fill; l.TextAlign = ContentAlignment.MiddleLeft;
+            c.Dock = DockStyle.Fill;
+            t.Controls.Add(l, 0, r);
+            t.Controls.Add(c, 1, r);
+        }
+
+        static void AddFull(TableLayoutPanel t, Control c, int height)
+        {
+            int r = t.RowCount++;
+            t.RowStyles.Add(height > 0 ? new RowStyle(SizeType.Absolute, height) : new RowStyle(SizeType.AutoSize));
+            c.Dock = DockStyle.Fill;
+            t.Controls.Add(c, 0, r);
+        }
+
+        static GroupBox MakeGroup(string text, Control inner)
+        {
+            GroupBox g = new GroupBox();
+            g.Text = text; g.Dock = DockStyle.Fill; g.AutoSize = true;
+            g.AutoSizeMode = AutoSizeMode.GrowAndShrink;
+            g.Controls.Add(inner);
+            return g;
+        }
+
+        static void AddRoot(TableLayoutPanel root, Control c, SizeType type)
+        {
+            int r = root.RowCount++;
+            root.RowStyles.Add(type == SizeType.Percent ? new RowStyle(SizeType.Percent, 100) : new RowStyle(SizeType.AutoSize));
+            c.Dock = DockStyle.Fill;
+            root.Controls.Add(c, 0, r);
+        }
+
+        void BuildUi()
+        {
+            SuspendLayout();
+            Text = "Androidzy";
+            AutoScaleDimensions = new SizeF(96F, 96F);
+            AutoScaleMode = AutoScaleMode.Dpi;
+            Font = new Font("Segoe UI", 9F);
+            ClientSize = new Size(620, 740);
+            MinimumSize = new Size(580, 680);
+            StartPosition = FormStartPosition.CenterScreen;
+            try { Icon = Icon.ExtractAssociatedIcon(Application.ExecutablePath); } catch { }
+
+            TableLayoutPanel root = new TableLayoutPanel();
+            root.Dock = DockStyle.Fill; root.ColumnCount = 1; root.Padding = new Padding(14);
+            root.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+
+            // header
+            Label title = new Label();
+            title.Text = "Androidzy"; title.Font = new Font("Segoe UI Semibold", 17F); title.AutoSize = true;
+            lblSub = new Label();
+            lblSub.ForeColor = SystemColors.GrayText; lblSub.AutoSize = true; lblSub.Margin = new Padding(3, 0, 3, 0);
+            LinkLabel lnkBy = new LinkLabel();
+            lnkBy.Text = "Androidzy by @dznye"; lnkBy.AutoSize = true; lnkBy.Margin = new Padding(3, 2, 3, 8);
+            lnkBy.LinkClicked += delegate { try { Process.Start("https://github.com/dznye"); } catch { } };
+            FlowLayoutPanel head = new FlowLayoutPanel();
+            head.FlowDirection = FlowDirection.TopDown; head.WrapContents = false; head.AutoSize = true;
+            head.Controls.Add(title); head.Controls.Add(lblSub); head.Controls.Add(lnkBy);
+            AddRoot(root, head, SizeType.AutoSize);
+
+            // first-run setup (only visible while the Android components are missing)
+            Label lblSetup = new Label();
+            lblSetup.Text = "Androidzy needs Google's Android Emulator, platform tools and the Android 14 (Google Play) system image: " +
+                            "about 2 GB to download and 4.5 GB on disk. They are fetched straight from Google and are licensed to you " +
+                            "under the Android Software Development Kit License Agreement.";
+            LinkLabel lnkTerms = new LinkLabel();
+            lnkTerms.Text = "Read the license agreement"; lnkTerms.AutoSize = true;
+            lnkTerms.LinkClicked += delegate { try { Process.Start(Setup.TermsUrl); } catch { } };
+            chkLicense = new CheckBox();
+            chkLicense.Text = "I have read and accept the license agreement"; chkLicense.AutoSize = true;
+            chkLicense.Checked = st.LicenseAccepted;
+            chkLicense.CheckedChanged += delegate { btnDownload.Enabled = chkLicense.Checked && !downloading; };
+            btnDownload = new Button(); btnDownload.Text = "Download"; btnDownload.Size = new Size(120, 30);
+            btnDownload.Enabled = chkLicense.Checked;
+            btnDownload.Click += delegate { StartDownload(); };
+            btnCancel = new Button(); btnCancel.Text = "Cancel"; btnCancel.Size = new Size(80, 30); btnCancel.Enabled = false;
+            btnCancel.Click += delegate { cancelDownload = true; btnCancel.Enabled = false; lblSetupStatus.Text = "Cancelling..."; };
+            FlowLayoutPanel dlButtons = new FlowLayoutPanel();
+            dlButtons.AutoSize = true; dlButtons.Controls.Add(btnDownload); dlButtons.Controls.Add(btnCancel);
+            prog = new ProgressBar(); prog.Minimum = 0; prog.Maximum = 100;
+            lblSetupStatus = new Label();
+            TableLayoutPanel ts = new TableLayoutPanel();
+            ts.Dock = DockStyle.Fill; ts.AutoSize = true; ts.ColumnCount = 1; ts.Padding = new Padding(8, 4, 8, 8);
+            ts.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
+            AddFull(ts, lblSetup, 66);
+            AddFull(ts, lnkTerms, 22);
+            AddFull(ts, chkLicense, 26);
+            AddFull(ts, dlButtons, 38);
+            AddFull(ts, prog, 22);
+            AddFull(ts, lblSetupStatus, 22);
+            gbSetup = MakeGroup("First-run setup", ts);
+            AddRoot(root, gbSetup, SizeType.AutoSize);
+
+            // graphics
+            cbProfile = new ComboBox(); cbProfile.DropDownStyle = ComboBoxStyle.DropDownList;
+            foreach (GpuProfile p in Host.Profiles) cbProfile.Items.Add(p);
+            lblDesc = new Label(); lblDesc.ForeColor = SystemColors.GrayText;
+            Label lblGpu = new Label(); lblGpu.Text = gpus.Length > 0 ? string.Join("\r\n", gpus) : "(none found)";
+            LinkLabel lnk = new LinkLabel(); lnk.Text = "Windows graphics settings"; lnk.AutoSize = true;
+            lnk.LinkClicked += delegate { try { Process.Start("ms-settings:display-advanced-graphics"); } catch { } };
+            TableLayoutPanel tg = MakeTable();
+            AddRow(tg, "GPU profile", cbProfile, 28);
+            AddRow(tg, "", lblDesc, 46);
+            AddRow(tg, "Detected GPUs", lblGpu, 38);
+            AddRow(tg, "", lnk, 22);
+            AddRoot(root, MakeGroup("Graphics", tg), SizeType.AutoSize);
+
+            // display / performance
+            cbRes = new ComboBox(); cbRes.DropDownStyle = ComboBoxStyle.DropDownList;
+            foreach (Res r in Host.Resolutions) cbRes.Items.Add(r);
+            nudCores = new NumericUpDown();
+            nudCores.Minimum = 1; nudCores.Maximum = Environment.ProcessorCount;
+            cbRam = new ComboBox(); cbRam.DropDownStyle = ComboBoxStyle.DropDownList;
+            foreach (int mb in Host.RamChoicesMb) cbRam.Items.Add((mb / 1024) + " GB");
+            TableLayoutPanel tp = MakeTable();
+            AddRow(tp, "Resolution", cbRes, 28);
+            AddRow(tp, "CPU cores", nudCores, 28);
+            AddRow(tp, "Memory", cbRam, 28);
+            AddRoot(root, MakeGroup("Display and performance", tp), SizeType.AutoSize);
+
+            // options
+            chkSave = new CheckBox(); chkSave.Text = "Save state on exit (fast next start)"; chkSave.AutoSize = true;
+            chkCold = new CheckBox(); chkCold.Text = "Cold boot this time"; chkCold.AutoSize = true;
+            chkWipe = new CheckBox(); chkWipe.Text = "Wipe all data (factory reset)"; chkWipe.AutoSize = true;
+            FlowLayoutPanel opts = new FlowLayoutPanel();
+            opts.AutoSize = true; opts.Margin = new Padding(3, 8, 3, 0);
+            opts.Controls.Add(chkSave); opts.Controls.Add(chkCold); opts.Controls.Add(chkWipe);
+            AddRoot(root, opts, SizeType.AutoSize);
+
+            // buttons
+            btnLaunch = new Button(); btnLaunch.Text = "Launch"; btnLaunch.Size = new Size(130, 34);
+            btnLaunch.Font = new Font("Segoe UI Semibold", 10F);
+            btnStop = new Button(); btnStop.Text = "Stop"; btnStop.Size = new Size(90, 34); btnStop.Enabled = false;
+            Button btnLogs = new Button(); btnLogs.Text = "Open logs"; btnLogs.Size = new Size(100, 34);
+            btnLaunch.Click += delegate { Launch(); };
+            btnStop.Click += delegate { StopAsync(); };
+            btnLogs.Click += delegate { try { Directory.CreateDirectory(Paths.LogDir); Process.Start(Paths.LogDir); } catch { } };
+            FlowLayoutPanel btns = new FlowLayoutPanel();
+            btns.AutoSize = true; btns.Margin = new Padding(3, 10, 3, 4);
+            btns.Controls.Add(btnLaunch); btns.Controls.Add(btnStop); btns.Controls.Add(btnLogs);
+            AddRoot(root, btns, SizeType.AutoSize);
+
+            lblStatus = new Label(); lblStatus.AutoSize = true; lblStatus.Margin = new Padding(6, 4, 3, 6);
+            AddRoot(root, lblStatus, SizeType.AutoSize);
+
+            txtLog = new TextBox();
+            txtLog.Multiline = true; txtLog.ReadOnly = true; txtLog.ScrollBars = ScrollBars.Vertical;
+            txtLog.Font = new Font("Consolas", 8.5F); txtLog.BackColor = SystemColors.Window;
+            txtLog.WordWrap = false;
+            AddRoot(root, txtLog, SizeType.Percent);
+
+            Controls.Add(root);
+
+            // restore settings
+            GpuProfile sel = Host.FindProfile(cli.Profile) ?? Host.FindProfile(st.Profile);
+            if (sel == null) sel = Host.FindProfile(Host.HasDiscreteGpu(gpus) ? "dedicated" : "auto");
+            cbProfile.SelectedItem = sel;
+            cbRes.SelectedIndex = st.Res;
+            nudCores.Value = st.Cores;
+            cbRam.SelectedIndex = Array.IndexOf(Host.RamChoicesMb, st.RamMb);
+            chkSave.Checked = st.SaveOnExit && !cli.NoSave;
+            chkCold.Checked = cli.Cold;
+            cbProfile.SelectedIndexChanged += delegate { ShowProfileInfo(); };
+            ShowProfileInfo();
+
+            FormClosing += OnClosing;
+            ResumeLayout(true);
+        }
+
+        void ShowProfileInfo()
+        {
+            GpuProfile p = (GpuProfile)cbProfile.SelectedItem;
+            string d = p.Description;
+            if (p.WinPref == 2 && !Host.HasDiscreteGpu(gpus))
+                d += "  (No dedicated GPU detected - this behaves like Windows default.)";
+            lblDesc.Text = d;
+        }
+
+        void SetStatus(string text) { lblStatus.Text = text; }
+
+        void Error(string msg) { MessageBox.Show(this, msg, "Androidzy", MessageBoxButtons.OK, MessageBoxIcon.Error); }
+
+        void PostToUi(Action act)
+        {
+            try { if (IsHandleCreated && !IsDisposed) BeginInvoke(act); } catch { }
+        }
+
+        // ---- first-run setup -----------------------------------------------------------------------
+
+        void ResolveSdk()
+        {
+            string sdk = Setup.FindSdk(!cli.OwnCopy);
+            if (sdk != null) Paths.Sdk = sdk;
+            sdkReady = sdk != null;
+            gbSetup.Visible = !sdkReady;
+            lblSub.Text = sdkReady ? Host.VersionLine() : "Android 14 (API 34)  -  Google Play";
+            SetRunning(false);
+            SetStatus(sdkReady ? "Ready" : "Download the Android components to get started");
+        }
+
+        void StartDownload()
+        {
+            if (downloading) return;
+            long need = 7L << 30;   // zips are deleted as we go; peak is roughly the image zip plus its unpacked size
+            try
+            {
+                string root = Path.GetPathRoot(Path.GetFullPath(Paths.DataRoot));
+                long free = new DriveInfo(root).AvailableFreeSpace;
+                if (free < need && MessageBox.Show(this,
+                        "Only " + (free >> 30) + " GB are free on " + root + " and about 7 GB are needed while installing.\r\n\r\nContinue anyway?",
+                        "Androidzy", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                    return;
+            }
+            catch { }
+
+            st.LicenseAccepted = true; st.Save();
+            downloading = true; cancelDownload = false;
+            btnDownload.Enabled = false; chkLicense.Enabled = false; btnCancel.Enabled = true;
+            prog.Value = 0;
+            lblSetupStatus.Text = "Contacting Google...";
+            string sdk = Path.Combine(Paths.DataRoot, "sdk");
+            Thread t = new Thread(delegate() { DownloadWorker(sdk); });
+            t.IsBackground = true;
+            t.Start();
+        }
+
+        void DownloadWorker(string sdk)
+        {
+            string error = null;
+            try
+            {
+                Directory.CreateDirectory(sdk);
+                List<Component> comps = Setup.FetchCatalog(sdk);
+                Setup.Install(comps, sdk, (text, pct) => PostToUi(() =>
+                {
+                    lblSetupStatus.Text = text;
+                    prog.Value = Math.Max(0, Math.Min(100, pct));
+                }), () => cancelDownload);
+            }
+            catch (OperationCanceledException) { error = "Cancelled."; }
+            catch (Exception ex) { error = ex.Message; }
+            PostToUi(() => OnDownloadDone(error));
+        }
+
+        void OnDownloadDone(string error)
+        {
+            downloading = false;
+            chkLicense.Enabled = true; btnCancel.Enabled = false;
+            btnDownload.Enabled = chkLicense.Checked;
+            if (error != null)
+            {
+                lblSetupStatus.Text = "Stopped: " + error;
+                return;
+            }
+            ResolveSdk();
+            if (sdkReady && pendingLaunch) { pendingLaunch = false; Launch(); }
+        }
+
+        // ---- emulator ------------------------------------------------------------------------------
+
+        void SetRunning(bool running)
+        {
+            btnLaunch.Enabled = !running && sdkReady;
+            btnStop.Enabled = running;
+            cbProfile.Enabled = cbRes.Enabled = nudCores.Enabled = cbRam.Enabled = !running;
+            chkCold.Enabled = chkWipe.Enabled = chkSave.Enabled = !running;
+        }
+
+        void Launch()
+        {
+            if (proc != null || !sdkReady) return;
+            if (!File.Exists(Paths.Emulator) || !File.Exists(Paths.SystemImage) || !File.Exists(Paths.Adb))
+            {
+                Error("The Android components were not found:\r\n  " + Paths.Emulator + "\r\n  " + Paths.SystemImage + "\r\n  " + Paths.Adb);
+                return;
+            }
+            if (chkWipe.Checked && !cli.Launch &&
+                MessageBox.Show(this, "This erases every app, account and file inside the emulator.\r\n\r\nContinue?",
+                    "Wipe data", MessageBoxButtons.YesNo, MessageBoxIcon.Warning) != DialogResult.Yes)
+                return;
+
+            GpuProfile prof = (GpuProfile)cbProfile.SelectedItem;
+            Res res = Host.Resolutions[cbRes.SelectedIndex];
+            st.Profile = prof.Id; st.Res = cbRes.SelectedIndex; st.Cores = (int)nudCores.Value;
+            st.RamMb = Host.RamChoicesMb[cbRam.SelectedIndex];
+            if (!cli.NoSave) st.SaveOnExit = chkSave.Checked;   // --no-save is a one-off, never persisted
+            st.Save();
+
+            try
+            {
+                Host.ApplyGpuPreference(prof);
+                Host.PrepareAvd(st, res, prof);
+            }
+            catch (Exception ex) { Error("Could not prepare the virtual device:\r\n" + ex.Message); return; }
+
+            port = Host.FreeConsolePort();
+            if (port < 0) { Error("No free emulator console port (5554-5584). Close another emulator and retry."); return; }
+
+            StringBuilder a = new StringBuilder();
+            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, st.Cores, st.RamMb);
+            a.Append(" -no-boot-anim -no-metrics -netdelay none -netspeed full -accel on");
+            if (chkCold.Checked || chkWipe.Checked) a.Append(" -no-snapshot-load");
+            if (!chkSave.Checked) a.Append(" -no-snapshot-save");
+            if (chkWipe.Checked) a.Append(" -wipe-data");
+            if (cli.Headless) a.Append(" -no-window");
+            if (cli.Verbose) a.Append(" -verbose");
+
+            ProcessStartInfo psi = new ProcessStartInfo(Paths.Emulator, a.ToString());
+            psi.WorkingDirectory = Paths.EmuDir;
+            psi.UseShellExecute = false; psi.CreateNoWindow = true;
+            psi.RedirectStandardOutput = true; psi.RedirectStandardError = true;
+            psi.EnvironmentVariables["ANDROID_SDK_ROOT"] = Paths.Sdk;
+            psi.EnvironmentVariables["ANDROID_HOME"] = Paths.Sdk;
+            psi.EnvironmentVariables["ANDROID_AVD_HOME"] = Paths.AvdHome;
+            psi.EnvironmentVariables["PATH"] = Path.Combine(Paths.Sdk, "platform-tools") + ";" + psi.EnvironmentVariables["PATH"];
+            // Saving the quick-boot snapshot can take a while; the default grace period is only 20 s.
+            psi.EnvironmentVariables["ANDROID_EMULATOR_WAIT_TIME_BEFORE_KILL"] = "60";
+            // The Windows GPU preference above orders the host GPUs, so index 0 is the GPU the profile pinned.
+            // Without this the emulator scores GPUs itself and can run Vulkan on a different GPU than GLES.
+            if (prof.WinPref > 0) psi.EnvironmentVariables["ANDROID_EMU_VK_SELECT_GPU"] = "0";
+            else psi.EnvironmentVariables.Remove("ANDROID_EMU_VK_SELECT_GPU");
+
+            try
+            {
+                Directory.CreateDirectory(Paths.LogDir);
+                logWriter = new StreamWriter(Path.Combine(Paths.LogDir, "emulator-" + DateTime.Now.ToString("yyyyMMdd-HHmmss") + ".log"));
+                logWriter.AutoFlush = true;
+            }
+            catch { logWriter = null; }
+
+            txtLog.Clear(); recent.Clear(); booted = false; gpuInUse = "";
+            AppendLog("> emulator.exe " + a);
+            AppendLog("> SDK: " + Paths.Sdk);
+            AppendLog("> GPU profile: " + prof.Name + "  (Windows preference " + prof.WinPref + ")");
+
+            proc = new Process();
+            proc.StartInfo = psi;
+            proc.EnableRaisingEvents = true;
+            proc.OutputDataReceived += OnData;
+            proc.ErrorDataReceived += OnData;
+            proc.Exited += delegate { PostToUi(new Action(OnExited)); };
+            try
+            {
+                proc.Start();
+                proc.BeginOutputReadLine();
+                proc.BeginErrorReadLine();
+            }
+            catch (Exception ex)
+            {
+                Error("Could not start the emulator:\r\n" + ex.Message);
+                proc = null;
+                return;
+            }
+            chkWipe.Checked = false; chkCold.Checked = false;
+            SetRunning(true);
+            SetStatus("Starting...  (the very first boot can take a few minutes)");
+        }
+
+        void OnData(object sender, DataReceivedEventArgs e)
+        {
+            if (e.Data == null) return;
+            string line = e.Data;
+            PostToUi(() => AppendLog(line));
+        }
+
+        void AppendLog(string line)
+        {
+            if (logWriter != null) { try { logWriter.WriteLine(line); } catch { } }
+            recent.Add(line);
+            if (recent.Count > 300) recent.RemoveAt(0);
+            txtLog.AppendText(line + "\r\n");
+            if (txtLog.TextLength > 80000) txtLog.Text = txtLog.Text.Substring(txtLog.TextLength - 40000);
+            Match m = Regex.Match(line, @"Selecting Vulkan device: (.+?), Version");
+            if (m.Success) gpuInUse = m.Groups[1].Value;
+            // a quick boot restores a snapshot and never prints "Boot completed"
+            if (!booted && (line.IndexOf("boot completed", StringComparison.OrdinalIgnoreCase) >= 0 ||
+                            line.IndexOf("Successfully loaded snapshot", StringComparison.OrdinalIgnoreCase) >= 0))
+            {
+                booted = true;
+                SetStatus("Running  -  emulator-" + port + (gpuInUse.Length > 0 ? "  -  GPU: " + gpuInUse : ""));
+            }
+        }
+
+        void OnExited()
+        {
+            int code = 0;
+            try { code = proc.ExitCode; } catch { }
+            proc = null;
+            AppendLog("> emulator exited (code " + code + ")");
+            if (logWriter != null) { try { logWriter.Dispose(); } catch { } logWriter = null; }
+            SetRunning(false);
+
+            string all = string.Join("\n", recent.ToArray());
+            string hint = "";
+            if (code != 0 && Regex.IsMatch(all, "WHPX|HAXM|AEHD|hardware acceleration|hypervisor", RegexOptions.IgnoreCase))
+                hint = "Hardware acceleration is unavailable. Turn on virtualization in the BIOS and enable the Windows feature " +
+                       "\"Windows Hypervisor Platform\" (optionalfeatures.exe), then restart Windows.";
+            SetStatus(code == 0 ? "Stopped" : "Stopped (exit code " + code + ")");
+            if (hint.Length > 0) Error(hint);
+        }
+
+        void StopAsync()
+        {
+            if (proc == null) return;
+            btnStop.Enabled = false;
+            SetStatus("Stopping...  (saving state)");
+            Process p = proc; int pt = port;
+            ThreadPool.QueueUserWorkItem(delegate { Host.StopEmulator(p, pt); });
+        }
+
+        void OnClosing(object sender, FormClosingEventArgs e)
+        {
+            if (downloading)
+            {
+                if (MessageBox.Show(this, "A download is in progress. Cancel it and exit?", "Androidzy",
+                        MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes) { e.Cancel = true; return; }
+                cancelDownload = true;
+            }
+            if (proc == null) return;
+            if (MessageBox.Show(this, "The emulator is still running. Stop it and exit?", "Androidzy",
+                    MessageBoxButtons.YesNo, MessageBoxIcon.Question) != DialogResult.Yes)
+            {
+                e.Cancel = true;
+                return;
+            }
+            Cursor = Cursors.WaitCursor;
+            Host.StopEmulator(proc, port);
+        }
+    }
+}

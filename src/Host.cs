@@ -1,0 +1,207 @@
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Management;
+using System.Net;
+using System.Net.Sockets;
+using System.Text;
+using Microsoft.Win32;
+
+namespace Androidzy
+{
+    // Everything that touches the machine: GPU detection and preference, the virtual device, ports, stopping.
+    static class Host
+    {
+        public static readonly GpuProfile[] Profiles =
+        {
+            new GpuProfile { Id = "dedicated", Name = "Dedicated GPU (best performance)", EmuGpu = "host", WinPref = 2,
+                Description = "Pins the emulator's renderer to your high-performance GPU (NVIDIA / AMD) and uses its native drivers. Best for games." },
+            new GpuProfile { Id = "integrated", Name = "Integrated GPU (battery saver)", EmuGpu = "host", WinPref = 1,
+                Description = "Pins the renderer to the power-saving GPU (usually Intel). Cooler and quieter, slower in heavy games." },
+            new GpuProfile { Id = "auto", Name = "Windows default", EmuGpu = "host", WinPref = 0,
+                Description = "Hardware GPU, but Windows decides which one. Removes any override this app set earlier." },
+            new GpuProfile { Id = "software", Name = "Software renderer (compatibility)", EmuGpu = "swangle", WinPref = 0,
+                Description = "CPU rendering through SwiftShader/ANGLE. Slow, but works when GPU drivers misbehave." }
+        };
+
+        public static readonly Res[] Resolutions =
+        {
+            new Res { Name = "1280 x 720  landscape (light)",        W = 1280, H = 720,  Dpi = 160 },
+            new Res { Name = "1920 x 1080  landscape (recommended)", W = 1920, H = 1080, Dpi = 240 },
+            new Res { Name = "2560 x 1440  landscape (sharp)",       W = 2560, H = 1440, Dpi = 320 },
+            new Res { Name = "1080 x 2400  phone portrait",          W = 1080, H = 2400, Dpi = 420 }
+        };
+
+        public static readonly int[] RamChoicesMb = { 2048, 3072, 4096, 6144, 8192 };
+
+        // Written once when the virtual device is created; hardware keys are updated on every launch.
+        static readonly string[] BaseConfig =
+        {
+            "AvdId=" + Paths.AvdName,
+            "PlayStore.enabled=true",
+            "abi.type=x86_64",
+            "avd.ini.displayname=" + Paths.AvdName,
+            "avd.ini.encoding=UTF-8",
+            "disk.dataPartition.size=8G",
+            "fastboot.chosenSnapshotFile=",
+            "fastboot.forceChosenSnapshotBoot=no",
+            "fastboot.forceColdBoot=no",
+            "fastboot.forceFastBoot=yes",
+            "hw.accelerometer=yes",
+            "hw.arc=false",
+            "hw.audioInput=yes",
+            "hw.audioOutput=yes",
+            "hw.battery=yes",
+            "hw.camera.back=none",
+            "hw.camera.front=none",
+            "hw.cpu.arch=x86_64",
+            "hw.dPad=no",
+            "hw.device.manufacturer=Google",
+            "hw.gltransport=asg",
+            "hw.gps=yes",
+            "hw.gyroscope=yes",
+            "hw.keyboard=yes",
+            "hw.mainKeys=no",
+            "hw.sdCard=no",
+            "hw.sensors.orientation=yes",
+            "hw.sensors.proximity=yes",
+            "hw.trackBall=no",
+            "image.sysdir.1=" + Paths.ImageRel + "\\",
+            "runtime.network.latency=none",
+            "runtime.network.speed=full",
+            "showDeviceFrame=no",
+            "skin.dynamic=yes",
+            "tag.display=Google Play",
+            "tag.id=google_apis_playstore",
+            "vm.heapSize=512"
+        };
+
+        public static GpuProfile FindProfile(string id)
+        {
+            foreach (GpuProfile p in Profiles) if (p.Id == id) return p;
+            return null;
+        }
+
+        public static string[] DetectGpus()
+        {
+            List<string> names = new List<string>();
+            try
+            {
+                using (ManagementObjectSearcher s = new ManagementObjectSearcher("SELECT Name FROM Win32_VideoController"))
+                    foreach (ManagementBaseObject o in s.Get())
+                        if (o["Name"] != null) names.Add(o["Name"].ToString());
+            }
+            catch { }
+            return names.ToArray();
+        }
+
+        public static bool HasDiscreteGpu(string[] gpus)
+        {
+            foreach (string g in gpus)
+            {
+                string n = g.ToLowerInvariant();
+                if (n.Contains("nvidia") || n.Contains("radeon") || n.Contains("amd ") || n.Contains("arc ")) return true;
+            }
+            return false;
+        }
+
+        public static string VersionLine()
+        {
+            string rev = "?";
+            try
+            {
+                foreach (string l in File.ReadAllLines(Path.Combine(Paths.EmuDir, "source.properties")))
+                    if (l.StartsWith("Pkg.Revision=")) rev = l.Substring("Pkg.Revision=".Length).Trim();
+            }
+            catch { }
+            return "Android 14 (API 34)  -  Google Play  -  emulator " + rev;
+        }
+
+        // Same switch as Settings > System > Display > Graphics > "Choose a GPU for this app".
+        public static void ApplyGpuPreference(GpuProfile p)
+        {
+            using (RegistryKey k = Registry.CurrentUser.CreateSubKey(@"Software\Microsoft\DirectX\UserGpuPreferences"))
+            {
+                foreach (string exe in Paths.GpuExes)
+                {
+                    if (p.WinPref > 0) k.SetValue(exe, "GpuPreference=" + p.WinPref + ";", RegistryValueKind.String);
+                    else if (k.GetValue(exe) != null) k.DeleteValue(exe, false);
+                }
+            }
+        }
+
+        static void SetKey(List<string> lines, string key, string val)
+        {
+            for (int i = 0; i < lines.Count; i++)
+                if (lines[i].StartsWith(key + "=")) { lines[i] = key + "=" + val; return; }
+            lines.Add(key + "=" + val);
+        }
+
+        // Creates the virtual device on first use, then applies the per-run hardware settings.
+        // The AVD pointer is rewritten every time so the data folder can be moved.
+        public static void PrepareAvd(Settings s, Res r, GpuProfile p)
+        {
+            string avdDir = Path.Combine(Paths.AvdHome, Paths.AvdName + ".avd");
+            Directory.CreateDirectory(avdDir);
+            File.WriteAllText(Path.Combine(Paths.AvdHome, Paths.AvdName + ".ini"),
+                "avd.ini.encoding=UTF-8\r\npath=" + avdDir + "\r\npath.rel=" + Paths.AvdName + ".avd\r\ntarget=android-34\r\n",
+                Encoding.ASCII);
+
+            string cfg = Path.Combine(avdDir, "config.ini");
+            List<string> lines = File.Exists(cfg) ? new List<string>(File.ReadAllLines(cfg)) : new List<string>(BaseConfig);
+            SetKey(lines, "hw.lcd.width", r.W.ToString());
+            SetKey(lines, "hw.lcd.height", r.H.ToString());
+            SetKey(lines, "hw.lcd.density", r.Dpi.ToString());
+            SetKey(lines, "hw.initialOrientation", r.W >= r.H ? "landscape" : "portrait");
+            SetKey(lines, "hw.cpu.ncore", s.Cores.ToString());
+            SetKey(lines, "hw.ramSize", s.RamMb.ToString());
+            SetKey(lines, "hw.gpu.enabled", "yes");
+            SetKey(lines, "hw.gpu.mode", p.EmuGpu);
+            File.WriteAllLines(cfg, lines.ToArray(), Encoding.ASCII);
+        }
+
+        public static int FreeConsolePort()
+        {
+            for (int port = 5554; port <= 5584; port += 2)
+            {
+                try
+                {
+                    TcpListener a = new TcpListener(IPAddress.Loopback, port);
+                    TcpListener b = new TcpListener(IPAddress.Loopback, port + 1);
+                    a.Start(); b.Start(); a.Stop(); b.Stop();
+                    return port;
+                }
+                catch { }
+            }
+            return -1;
+        }
+
+        public static void KillTree(int pid)
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo("taskkill", "/PID " + pid + " /T /F");
+                psi.CreateNoWindow = true; psi.UseShellExecute = false;
+                Process.Start(psi).WaitForExit(10000);
+            }
+            catch { }
+        }
+
+        // Ask the emulator to exit itself (lets it save the quick-boot snapshot); kill it if it does not.
+        // (emulator.exe also leaves a detached guard process behind that idles for the shutdown grace period;
+        // it is harmless and not tied to this Process.)
+        public static void StopEmulator(Process p, int port)
+        {
+            try
+            {
+                ProcessStartInfo psi = new ProcessStartInfo(Paths.Adb, "-s emulator-" + port + " emu kill");
+                psi.CreateNoWindow = true; psi.UseShellExecute = false;
+                Process a = Process.Start(psi);
+                a.WaitForExit(8000);
+            }
+            catch { }
+            try { if (!p.WaitForExit(90000)) KillTree(p.Id); } catch { }
+        }
+    }
+}

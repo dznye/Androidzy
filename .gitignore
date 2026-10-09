@@ -1,0 +1,4 @@
+bin/
+obj/
+*.log
+Androidzy.ini
