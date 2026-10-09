@@ -33,11 +33,12 @@
   "url": "https://dznye.github.io/Androidzy/",
   "applicationCategory": "UtilitiesApplication",
   "operatingSystem": "Windows 10, Windows 11",
-  "softwareVersion": "1.0",
+  "softwareVersion": "1.0.0",
   "license": "https://opensource.org/license/mit",
   "isAccessibleForFree": true,
   "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
-  "downloadUrl": "https://github.com/dznye/Androidzy",
+  "downloadUrl": "https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe",
+  "fileSize": "62 KB",
   "codeRepository": "https://github.com/dznye/Androidzy",
   "screenshot": "https://dznye.github.io/Androidzy/screenshot.png",
   "image": "https://dznye.github.io/Androidzy/og.png",
@@ -158,6 +159,7 @@ h1 em{font-style:normal;color:var(--accent)}
 .btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
 .btn.ghost{border-color:var(--line);color:var(--text);background:var(--surface)}
 .btn.ghost:hover{border-color:var(--accent);color:var(--text)}
+.dlnote{margin:-8px 0 20px;color:var(--muted);font-size:.88rem}
 .chips{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:.92rem}
 .chips li::before{content:"\2713";color:var(--accent);font-weight:700;margin-right:6px}
 .shot{justify-self:center;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line);max-width:420px;width:100%;background:var(--surface)}
@@ -245,9 +247,10 @@ footer p{margin:6px 0 0;max-width:46em}
       <h1 id="top">Android emulator for PC, built for apps <em>&mdash; not games</em></h1>
       <p class="lead">Androidzy puts a clean Android 14 device with Google Play on your Windows desktop. Use it as a second phone for work chat, email and the accounts you manage, or to run mobile-only apps on a big screen.</p>
       <div class="cta">
-        <a class="btn primary" href="https://github.com/dznye/Androidzy#getting-started">Get Androidzy &mdash; free</a>
+        <a class="btn primary" href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Download for Windows &mdash; free</a>
         <a class="btn ghost" href="#how-it-works">See how it works</a>
       </div>
+      <p class="dlnote">v1.0.0 &middot; Windows 10 &amp; 11 &middot; 62 KB &middot; <a href="https://github.com/dznye/Androidzy/releases/latest">release notes &amp; checksum</a></p>
       <ul class="chips">
         <li>Free &amp; open source (MIT)</li>
         <li>Official Google emulator</li>
@@ -298,7 +301,7 @@ footer p{margin:6px 0 0;max-width:46em}
     <h2 id="h-h">How to run Android apps on Windows 10 and 11</h2>
     <p class="sub">Four steps from download to your first app.</p>
     <ol class="steps">
-      <li><h3>Get Androidzy</h3><p>Download it from GitHub or build it yourself with one script. It is a single small .exe.</p></li>
+      <li><h3>Get Androidzy</h3><p>Download the single small <a href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Androidzy.exe</a>, or build it yourself with one script. Windows may show a SmartScreen warning because it is not code-signed yet.</p></li>
       <li><h3>First-run setup</h3><p>Accept Google's license and Androidzy fetches the emulator and Android 14 image (about 2 GB), or it reuses your Android Studio SDK.</p></li>
       <li><h3>Press Launch</h3><p>Pick a GPU profile and a window size, then launch. Android boots in a normal window.</p></li>
       <li><h3>Sign in and install</h3><p>Open Google Play, sign in and install your apps. Quick-boot keeps them ready for next time.</p></li>
