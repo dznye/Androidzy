@@ -14,6 +14,7 @@ namespace Androidzy
     {
         public string Name;
         public int W, H, Dpi;
+        public bool Fold;   // foldable device: adds a hinge sensor and fold postures
         public override string ToString() { return Name; }
     }
 
@@ -23,6 +24,7 @@ namespace Androidzy
         public bool AcceptLicense;   // unattended setup: same as ticking "I accept" and pressing Download
         public bool OwnCopy;         // ignore an existing Android SDK, download a private copy instead
         public string Profile;
+        public int ResIndex = -1;   // --res N: pick a screen option by position
 
         public static Options Parse(string[] a)
         {
@@ -39,6 +41,7 @@ namespace Androidzy
                     case "--accept-license": o.AcceptLicense = true; break;
                     case "--own-copy": o.OwnCopy = true; break;
                     case "--profile": if (i + 1 < a.Length) o.Profile = a[++i]; break;
+                    case "--res": if (i + 1 < a.Length) int.TryParse(a[++i], out o.ResIndex); break;
                 }
             }
             return o;

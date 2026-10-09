@@ -25,7 +25,9 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 
 - **Starts clean** - on a new device the preinstalled apps are removed automatically (Play Store, Files, Settings and the Google search app stay). Reversible from Google Play; switch it off with *Remove preinstalled apps*.
 - **Desktop share folder** - `Desktop\Androidzy Share` is created automatically. Anything dropped in it while the emulator runs is copied to the phone (photos to Pictures, videos to Movies, music to Music, the rest to Download, under `Androidzy/`) and registered with Android's media library.
-- **US location on every boot** - GPS is set to New York each time Android starts.
+- **US location on every boot** - GPS is set to New York each time Android starts, in device-only mode so Google's network location is not used.
+- **Pixel Fold** - pick *Google Pixel Fold* under Screen and the emulator gets a hinge with closed / half-open / open postures, so its fold controls appear (Extended controls > Virtual sensors > Device pose).
+- **Privacy settings** - background Wi-Fi/Bluetooth scanning and error reporting are switched off. This limits what the device volunteers; it does not make it anonymous.
 
 - **GPU profiles** - Dedicated, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
 - **Fast restarts** - quick-boot snapshots bring Android back in about a second.
@@ -41,7 +43,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 
 ## Getting started
 
-1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 72 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
+1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 75 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
 2. Run `Androidzy.exe`.
    - If an Android SDK with the Android 14 *Google Play* system image is found (Android Studio's default location, `ANDROID_HOME` or `ANDROID_SDK_ROOT`), it is used as is.
    - Otherwise a **First-run setup** panel offers to download the emulator, platform tools and system image (about 2 GB) from Google, after you accept Google's license.

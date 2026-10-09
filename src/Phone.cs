@@ -60,9 +60,27 @@ namespace Androidzy
 
         public static bool SetUsLocation(string serial)
         {
-            Adb(serial, "shell settings put secure location_mode 3", 10000);   // location services on
+            // 1 = device only: apps get the GPS position below and nothing from Google's network location service
+            Adb(serial, "shell settings put secure location_mode 1", 10000);
             string r = Adb(serial, "emu geo fix " + UsLongitude + " " + UsLatitude, 10000);
             return r.IndexOf("OK", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        // Privacy hygiene using the switches Android exposes: no background Wi-Fi/Bluetooth scanning (these feed
+        // location services), no open-network notifications, no app-crash reports sent from the device.
+        // This reduces what the device volunteers about itself. It does not make it anonymous: your Google
+        // account, the apps you sign in to and your network still identify you.
+        public static string HardenPrivacy(string serial)
+        {
+            string[] cmds =
+            {
+                "shell settings put global wifi_scan_always_enabled 0",
+                "shell settings put global ble_scan_always_enabled 0",
+                "shell settings put global wifi_networks_available_notification_on 0",
+                "shell settings put secure send_action_app_error 0"
+            };
+            foreach (string c in cmds) Adb(serial, c, 10000);
+            return "background Wi-Fi/Bluetooth scanning off, network location off, error reporting off";
         }
 
         // Removes every app with a launcher icon except the ones in Keep, for the current user only.

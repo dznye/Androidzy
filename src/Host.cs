@@ -30,7 +30,8 @@ namespace Androidzy
             new Res { Name = "1280 x 720  landscape (light)",        W = 1280, H = 720,  Dpi = 160 },
             new Res { Name = "1920 x 1080  landscape (recommended)", W = 1920, H = 1080, Dpi = 240 },
             new Res { Name = "2560 x 1440  landscape (sharp)",       W = 2560, H = 1440, Dpi = 320 },
-            new Res { Name = "1080 x 2400  phone portrait",          W = 1080, H = 2400, Dpi = 420 }
+            new Res { Name = "1080 x 2400  phone portrait",          W = 1080, H = 2400, Dpi = 420 },
+            new Res { Name = "Google Pixel Fold  (foldable, shows fold controls)", W = 2208, H = 1840, Dpi = 380, Fold = true }
         };
 
         public static readonly int[] RamChoicesMb = { 2048, 3072, 4096, 6144, 8192 };
@@ -138,6 +139,42 @@ namespace Androidzy
             lines.Add(key + "=" + val);
         }
 
+        static void RemoveKeys(List<string> lines, string prefix)
+        {
+            lines.RemoveAll(delegate(string l) { return l.StartsWith(prefix); });
+        }
+
+        // Pixel Fold: inner display 2208x1840 with a vertical hinge in the middle and closed / half-open / open
+        // postures; the emulator then offers its fold controls (Extended controls > Virtual sensors > Device pose).
+        static void ApplyFold(List<string> lines, Res r)
+        {
+            RemoveKeys(lines, "hw.sensor.hinge");
+            RemoveKeys(lines, "hw.sensor.posture_list");
+            RemoveKeys(lines, "hw.displayRegion");
+            SetKey(lines, "hw.device.name", "pixel_fold");
+            SetKey(lines, "hw.sensor.hinge", "yes");
+            SetKey(lines, "hw.sensor.hinge.count", "1");
+            SetKey(lines, "hw.sensor.hinge.type", "1");        // vertical
+            SetKey(lines, "hw.sensor.hinge.sub_type", "1");    // visible hinge
+            SetKey(lines, "hw.sensor.hinge.ranges", "0-180");
+            SetKey(lines, "hw.sensor.hinge.defaults", "180");
+            SetKey(lines, "hw.sensor.hinge.areas", (r.W / 2) + "-0-0-" + r.H);
+            SetKey(lines, "hw.sensor.posture_list", "1,2,3");   // closed, half-open, open
+            SetKey(lines, "hw.sensor.hinge_angles_posture_definitions", "0-30, 30-150, 150-180");
+            SetKey(lines, "hw.sensor.hinge.fold_to_displayRegion.0.1_at_posture", "1");
+            SetKey(lines, "hw.displayRegion.0.1.xOffset", "0");
+            SetKey(lines, "hw.displayRegion.0.1.yOffset", "0");
+            SetKey(lines, "hw.displayRegion.0.1.width", (r.W / 2).ToString());
+            SetKey(lines, "hw.displayRegion.0.1.height", r.H.ToString());
+        }
+
+        static void RemoveFold(List<string> lines)
+        {
+            RemoveKeys(lines, "hw.sensor.hinge");
+            RemoveKeys(lines, "hw.sensor.posture_list");
+            RemoveKeys(lines, "hw.displayRegion");
+        }
+
         // Creates the virtual device on first use, then applies the per-run hardware settings.
         // The AVD pointer is rewritten every time so the data folder can be moved.
         public static void PrepareAvd(Settings s, Res r, GpuProfile p)
@@ -158,6 +195,7 @@ namespace Androidzy
             SetKey(lines, "hw.ramSize", s.RamMb.ToString());
             SetKey(lines, "hw.gpu.enabled", "yes");
             SetKey(lines, "hw.gpu.mode", p.EmuGpu);
+            if (r.Fold) ApplyFold(lines, r); else RemoveFold(lines);
             File.WriteAllLines(cfg, lines.ToArray(), Encoding.ASCII);
         }
 

@@ -186,7 +186,7 @@ namespace Androidzy
             cbRam = new ComboBox(); cbRam.DropDownStyle = ComboBoxStyle.DropDownList;
             foreach (int mb in Host.RamChoicesMb) cbRam.Items.Add((mb / 1024) + " GB");
             TableLayoutPanel tp = MakeTable();
-            AddRow(tp, "Resolution", cbRes, 28);
+            AddRow(tp, "Screen", cbRes, 28);
             AddRow(tp, "CPU cores", nudCores, 28);
             AddRow(tp, "Memory", cbRam, 28);
             AddRoot(root, MakeGroup("Display and performance", tp), SizeType.AutoSize);
@@ -231,7 +231,7 @@ namespace Androidzy
             GpuProfile sel = Host.FindProfile(cli.Profile) ?? Host.FindProfile(st.Profile);
             if (sel == null) sel = Host.FindProfile(Host.HasDiscreteGpu(gpus) ? "dedicated" : "auto");
             cbProfile.SelectedItem = sel;
-            cbRes.SelectedIndex = st.Res;
+            cbRes.SelectedIndex = (cli.ResIndex >= 0 && cli.ResIndex < Host.Resolutions.Length) ? cli.ResIndex : st.Res;
             nudCores.Value = st.Cores;
             cbRam.SelectedIndex = Array.IndexOf(Host.RamChoicesMb, st.RamMb);
             chkSave.Checked = st.SaveOnExit && !cli.NoSave;
@@ -492,6 +492,7 @@ namespace Androidzy
                 if (!Phone.WaitForBoot(serial, 180000)) { say("> post-boot steps skipped: Android did not report ready"); return; }
 
                 say(Phone.SetUsLocation(serial) ? "> location set to the US (New York)" : "> could not set the location");
+                say("> privacy settings applied: " + Phone.HardenPrivacy(serial));
 
                 if (removeApps && !File.Exists(Paths.DebloatFlag))
                 {
