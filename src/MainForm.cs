@@ -520,7 +520,13 @@ namespace Androidzy
                 say(Phone.SetUsLocation(serial) ? "> location set to the US (New York)" : "> could not set the location");
                 say("> privacy settings applied: " + Phone.HardenPrivacy(serial));
                 say("> device name: " + Phone.SetDeviceName(serial, isFold ? "Pixel Fold" : "Androidzy"));
-                if (isFold) { Phone.Adb(serial, "shell cmd device_state state 2", 10000); say("> Pixel Fold unfolded"); }   // 2 = OPENED
+                if (isFold)
+                {
+                    Phone.Adb(serial, "shell cmd device_state state 2", 10000);   // 2 = OPENED
+                    // the emulator's pixel_fold hardware overlay is what draws the camera hole; switch it off
+                    Phone.Adb(serial, "shell cmd overlay disable --user 0 com.android.internal.emulation.pixel_fold", 10000);
+                    say("> Pixel Fold unfolded, camera hole removed");
+                }
 
                 if (removeApps && !File.Exists(Paths.DebloatFlag))
                 {
