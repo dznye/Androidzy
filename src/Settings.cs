@@ -3,7 +3,7 @@ using System.IO;
 
 namespace Androidzy
 {
-    sealed class Settings
+    sealed partial class Settings
     {
         public string Profile = "";
         public int Res = 1;
@@ -12,10 +12,20 @@ namespace Androidzy
         public bool SaveOnExit = true;
         public bool Debloat = true;
         public bool LicenseAccepted;
+        public string BootFeatures = "";   // boot-time emulator features of the last launch (decides whether the snapshot can be resumed)
+        public string ShareDir = "";       // share folder chosen in the app ("" = Desktop\Androidzy Share)
+        public string Timezone = "";       // IANA zone for the phone, e.g. America/New_York ("" = the PC's zone)
+        public string PrivateDns = "";     // DNS-over-TLS host for Android's Private DNS, e.g. one.one.one.one ("" = leave as is)
+        public string HttpProxy = "";      // host:port handed to the emulator's -http-proxy ("" = direct)
+
+        // A src\Local.cs that is not in the repository can implement this to bake in personal defaults;
+        // values in Androidzy.ini still win. Without that file the call compiles away.
+        partial void LocalDefaults();
 
         public static Settings Load()
         {
             Settings s = new Settings();
+            s.LocalDefaults();
             try
             {
                 if (File.Exists(Paths.SettingsFile))
@@ -34,6 +44,11 @@ namespace Androidzy
                             case "save_on_exit": s.SaveOnExit = v != "0"; break;
                             case "debloat": s.Debloat = v != "0"; break;
                             case "sdk_license_accepted": s.LicenseAccepted = v == "1"; break;
+                            case "boot_features": s.BootFeatures = v; break;
+                            case "share_dir": s.ShareDir = v; break;
+                            case "timezone": if (v.Length > 0) s.Timezone = v; break;
+                            case "private_dns": if (v.Length > 0) s.PrivateDns = v; break;
+                            case "http_proxy": if (v.Length > 0) s.HttpProxy = v; break;
                         }
                     }
             }
@@ -53,7 +68,12 @@ namespace Androidzy
                 {
                     "profile=" + Profile, "resolution=" + Res, "cores=" + Cores,
                     "ram_mb=" + RamMb, "save_on_exit=" + (SaveOnExit ? "1" : "0"), "debloat=" + (Debloat ? "1" : "0"),
-                    "sdk_license_accepted=" + (LicenseAccepted ? "1" : "0")
+                    "sdk_license_accepted=" + (LicenseAccepted ? "1" : "0"),
+                    "boot_features=" + BootFeatures,
+                    "share_dir=" + ShareDir,
+                    "timezone=" + Timezone,
+                    "private_dns=" + PrivateDns,
+                    "http_proxy=" + HttpProxy
                 });
             }
             catch { }

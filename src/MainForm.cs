@@ -38,12 +38,15 @@ namespace Androidzy
         int port;
         bool booted;
         string gpuInUse = "";
+        GpuProfile runProfile;
+        Governor governor;
         StreamWriter logWriter;
         readonly List<string> recent = new List<string>();
 
         public MainForm(Options o)
         {
             cli = o;
+            Paths.ShareChoice = st.ShareDir;
             BuildUi();
             ResolveSdk();
             pendingLaunch = cli.Launch;
@@ -206,11 +209,16 @@ namespace Androidzy
             btnLaunch.Font = new Font("Segoe UI Semibold", 10F);
             btnStop = new Button(); btnStop.Text = "Stop"; btnStop.Size = new Size(90, 34); btnStop.Enabled = false;
             Button btnLogs = new Button(); btnLogs.Text = "Open logs"; btnLogs.Size = new Size(100, 34);
-            Button btnShare = new Button(); btnShare.Text = "Share folder"; btnShare.Size = new Size(110, 34);
+            Button btnShare = new Button(); btnShare.Text = "Share folder ▾"; btnShare.Size = new Size(120, 34);
             btnLaunch.Click += delegate { Launch(); };
             btnStop.Click += delegate { StopAsync(); };
             btnLogs.Click += delegate { try { Directory.CreateDirectory(Paths.LogDir); Process.Start(Paths.LogDir); } catch { } };
-            btnShare.Click += delegate { try { EnsureShareFolder(); Process.Start(Paths.ShareDir); } catch { } };
+            ContextMenuStrip shareMenu = new ContextMenuStrip();
+            shareMenu.Items.Add("Open share folder", null, delegate { try { EnsureShareFolder(); Process.Start(Paths.ShareDir); } catch { } });
+            shareMenu.Items.Add("Move share folder...", null, delegate { ChooseShareFolder(); });
+            ToolStripItem miDefault = shareMenu.Items.Add("Use the Desktop folder again", null, delegate { SetShareFolder(""); });
+            shareMenu.Opening += delegate { miDefault.Enabled = st.ShareDir.Length > 0; };
+            btnShare.Click += delegate { shareMenu.Show(btnShare, new Point(0, btnShare.Height)); };
             FlowLayoutPanel btns = new FlowLayoutPanel();
             btns.AutoSize = true; btns.Margin = new Padding(3, 10, 3, 4);
             btns.Controls.Add(btnLaunch); btns.Controls.Add(btnStop); btns.Controls.Add(btnShare); btns.Controls.Add(btnLogs);
@@ -256,7 +264,38 @@ namespace Androidzy
 
         void SetStatus(string text) { lblStatus.Text = text; }
 
-        // The desktop folder that is copied to the phone automatically; created on every start if missing.
+        // Pick (or create, with "Make New Folder") any folder on the PC as the share folder.
+        void ChooseShareFolder()
+        {
+            using (FolderBrowserDialog dlg = new FolderBrowserDialog())
+            {
+                dlg.Description = "Choose or create the folder whose files are copied to the phone.";
+                dlg.ShowNewFolderButton = true;
+                try { dlg.SelectedPath = Paths.ShareDir; } catch { }
+                if (dlg.ShowDialog(this) == DialogResult.OK && dlg.SelectedPath.Length > 0) SetShareFolder(dlg.SelectedPath);
+            }
+        }
+
+        // Points the share folder somewhere else (files already in the old one stay where they are) and,
+        // when the phone is running, restarts the copy-to-phone watcher on the new folder.
+        void SetShareFolder(string dir)
+        {
+            st.ShareDir = dir; st.Save();
+            Paths.ShareChoice = dir;
+            EnsureShareFolder();
+            AppendLog("> share folder: " + Paths.ShareDir);
+            if (!string.IsNullOrEmpty(Environment.GetEnvironmentVariable("ANDROIDZY_SHARE")))
+                AppendLog("> note: ANDROIDZY_SHARE is set, so that folder is used instead");
+            if (proc != null && share != null)
+            {
+                StopShare();
+                ShareSync s = new ShareSync("emulator-" + port, Paths.ShareDir, m => PostToUi(() => AppendLog(m)));
+                s.Start();
+                share = s;
+            }
+        }
+
+        // The folder that is copied to the phone automatically; created on every start if missing.
         static void EnsureShareFolder()
         {
             try
@@ -394,9 +433,15 @@ namespace Androidzy
             if (port < 0) { Error("No free emulator console port (5554-5584). Close another emulator and retry."); return; }
 
             StringBuilder a = new StringBuilder();
-            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, st.Cores, st.RamMb);
+            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, prof.Cores(st.Cores), prof.RamMb(st.RamMb));
             a.Append(" -no-boot-anim -no-metrics -netdelay none -netspeed full -accel on");
-            if (chkCold.Checked || chkWipe.Checked) a.Append(" -no-snapshot-load");
+            if (st.HttpProxy.Length > 0) a.Append(" -http-proxy " + st.HttpProxy);
+            if (st.Timezone.Length > 0) a.Append(" -timezone " + st.Timezone);   // cold boots start in this zone too
+            string feats = prof.BootFeatures();
+            if (feats.Length > 0) a.Append(" " + feats);
+            bool featsSwitched = feats != st.BootFeatures;
+            st.BootFeatures = feats; st.Save();
+            if (chkCold.Checked || chkWipe.Checked || featsSwitched) a.Append(" -no-snapshot-load");
             if (!chkSave.Checked) a.Append(" -no-snapshot-save");
             if (chkWipe.Checked) a.Append(" -wipe-data");
             if (cli.Headless) a.Append(" -no-window");
@@ -429,6 +474,11 @@ namespace Androidzy
             AppendLog("> emulator.exe " + a);
             AppendLog("> SDK: " + Paths.Sdk);
             AppendLog("> GPU profile: " + prof.Name + "  (Windows preference " + prof.WinPref + ")");
+            if (prof.SoftwareVideo) AppendLog("> video: Android software decoders (goldfish host decoders off)");
+            if (prof.DirectNetwork) AppendLog("> network: direct Wi-Fi (netsim packet streamer off)");
+            if (featsSwitched) AppendLog("> boot features changed: cold boot this time");
+            if (prof.Cores(st.Cores) != st.Cores) AppendLog("> CPU: " + prof.Cores(st.Cores) + " cores (profile minimum; idle cores cost the PC nothing)");
+            runProfile = prof;
 
             proc = new Process();
             proc.StartInfo = psi;
@@ -491,6 +541,18 @@ namespace Androidzy
             Thread t = new Thread(delegate() { PostBoot(p, deb, fold); });
             t.IsBackground = true;
             t.Start();
+            if (runProfile != null && runProfile.Adaptive)
+            {
+                StopGovernor();
+                governor = new Governor("emulator-" + p, proc.Id, m => PostToUi(() => AppendLog(m)));
+                governor.Start();
+                AppendLog("> performance: adaptive (boost while Android is busy, efficiency mode after 20 s idle)");
+            }
+        }
+
+        void StopGovernor()
+        {
+            if (governor != null) { governor.Dispose(); governor = null; }
         }
 
         // Asks Android itself whether it has finished booting.
@@ -518,6 +580,11 @@ namespace Androidzy
                 if (!Phone.WaitForBoot(serial, 180000)) { say("> post-boot steps skipped: Android did not report ready"); return; }
 
                 say(Phone.SetUsLocation(serial) ? "> location set to the US (New York)" : "> could not set the location");
+                if (st.Timezone.Length > 0) say("> time zone: " + Phone.SetTimezone(serial, st.Timezone));
+                if (st.PrivateDns.Length > 0) { Phone.SetPrivateDns(serial, st.PrivateDns); say("> encrypted DNS (Private DNS): " + st.PrivateDns); }
+                say(st.HttpProxy.Length > 0
+                    ? "> IP: TCP goes through the proxy " + st.HttpProxy + " (UDP/QUIC does not; a VPN on the PC covers both)"
+                    : "> IP: direct - sites see this PC's public IP (a VPN on the PC changes that for the phone too)");
                 say("> privacy settings applied: " + Phone.HardenPrivacy(serial));
                 Phone.HideSoftKeyboard(serial);
                 say("> on-screen keyboard hidden (use your PC keyboard)");
@@ -557,6 +624,7 @@ namespace Androidzy
         void OnExited()
         {
             StopShare();
+            StopGovernor();
             int code = 0;
             try { code = proc.ExitCode; } catch { }
             proc = null;

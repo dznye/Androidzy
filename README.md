@@ -24,7 +24,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 ## Features
 
 - **Starts clean** - on a new device the preinstalled apps are removed automatically (Play Store, Files, Settings and the Google search app stay). Reversible from Google Play; switch it off with *Remove preinstalled apps*.
-- **Desktop share folder** - `Desktop\Androidzy Share` is created automatically. Anything dropped in it while the emulator runs is copied to the phone (photos to Pictures, videos to Movies, music to Music, the rest to Download, under `Androidzy/`) and registered with Android's media library.
+- **Share folder** - `Desktop\Androidzy Share` is created automatically. Anything dropped in it while the emulator runs is copied to the phone (photos to Pictures, videos to Movies, music to Music, the rest to Download, under `Androidzy/`) and registered with Android's media library. Put it anywhere with *Share folder ▾ > Move share folder...* (pick an existing folder or make a new one); *Use the Desktop folder again* switches back.
 - **US location on every boot** - GPS is set to New York each time Android starts, in device-only mode so Google's network location is not used.
 - **Pixel Fold** - pick *Google Pixel Fold* under Screen and the emulator gets a hinge with closed / half-open / open postures, so its fold controls appear (Extended controls > Virtual sensors > Device pose).
 - **Privacy settings** - background Wi-Fi/Bluetooth scanning and error reporting are switched off. This limits what the device volunteers; it does not make it anonymous.
@@ -32,7 +32,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 - **GPU profiles** - Dedicated, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
 - **Fast restarts** - quick-boot snapshots bring Android back in about a second.
 - **Zero setup** - uses the Android SDK you already have from Android Studio, or downloads what it needs from Google on first run.
-- **One small exe** - a single native Windows program (about 77 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
+- **One small exe** - a single native Windows program (about 75 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
 - Resolution presets, CPU/memory settings, cold boot, factory reset, per-launch logs.
 
 ## Requirements
@@ -43,7 +43,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 
 ## Getting started
 
-1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 77 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
+1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 75 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
 2. Run `Androidzy.exe`.
    - If an Android SDK with the Android 14 *Google Play* system image is found (Android Studio's default location, `ANDROID_HOME` or `ANDROID_SDK_ROOT`), it is used as is.
    - Otherwise a **First-run setup** panel offers to download the emulator, platform tools and system image (about 2 GB) from Google, after you accept Google's license.
@@ -56,16 +56,29 @@ Settings, the virtual device and any downloaded components live in `%LOCALAPPDAT
 | Profile | What it does |
 |---|---|
 | **Dedicated GPU** | Tells Windows to run the emulator on the high-performance GPU and pins Vulkan to the same one. Default on machines with an NVIDIA/AMD card. |
+| **TikTok (smooth video)** | Dedicated GPU, 60 Hz, at least 6 cores and 4 GB (higher choices are kept). Turns off the emulator's `c2.goldfish.*` host video decoders (`-feature -HardwareDecoder`), which stall when TikTok swaps players between videos, and the netsim Wi-Fi relay (`-feature -WiFiPacketStream`), which added ~85 ms to every round trip. An adaptive governor gives the emulator above-normal priority with Windows power throttling off while Android is busy, and hands the power back (below-normal priority, Windows efficiency mode) after 20 s idle. Switching to or from this profile cold-boots once. Measurements: [RESEARCH-TIKTOK.md](RESEARCH-TIKTOK.md). |
 | **Integrated GPU** | Same, for the power-saving GPU. Cooler and quieter, slower. |
 | **Windows default** | Removes the override; Windows and the emulator choose. |
 | **Software renderer** | SwiftShader/ANGLE on the CPU. Slow; only for broken GPU drivers. |
 
 The override is the same per-app setting as *Settings > System > Display > Graphics*, written under `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` for the emulator executables only. Choose **Windows default** to remove it.
 
+## Settings file
+
+`%LOCALAPPDATA%\Androidzy\Androidzy.ini` holds what the window remembers, plus three optional keys that have no control in the window:
+
+| Key | Effect |
+|---|---|
+| `timezone=America/New_York` | Phone time zone (IANA id), set on every boot and passed as `-timezone`. Empty = the PC's zone. |
+| `private_dns=one.one.one.one` | Turns on Android's Private DNS (DNS over TLS) with this host, so lookups are encrypted. It does not change your IP. |
+| `http_proxy=host:port` | Passed to the emulator as `-http-proxy`. Only TCP goes through it; UDP (QUIC) does not, so a VPN on the PC is the way to change the IP everything uses. |
+
+A `src\Local.cs` (ignored by git) can implement `Settings.LocalDefaults()` to bake personal defaults into your own build; values in the ini still win.
+
 ## Command line
 
 ```
-Androidzy.exe [--launch] [--profile dedicated|integrated|auto|software]
+Androidzy.exe [--launch] [--profile dedicated|tiktok|integrated|auto|software]
               [--cold] [--no-save] [--headless] [--verbose]
               [--accept-license] [--own-copy]
 ```

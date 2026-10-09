@@ -17,6 +17,8 @@ namespace Androidzy
         {
             new GpuProfile { Id = "dedicated", Name = "Dedicated GPU (best performance)", EmuGpu = "host", WinPref = 2,
                 Description = "Pins the emulator's renderer to your high-performance GPU (NVIDIA / AMD) and uses its native drivers. Smoothest for scrolling, video and 3D." },
+            new GpuProfile { Id = "tiktok", Name = "TikTok (smooth video)", EmuGpu = "host", WinPref = 2, MinCores = 6, MinRamMb = 4096, Vsync = 60, SoftwareVideo = true, DirectNetwork = true, Adaptive = true,
+                Description = "Tuned for TikTok and other short-video feeds: dedicated GPU, 60 Hz, at least 6 cores / 4 GB, video decoded by Android itself, direct Wi-Fi (about 4x lower latency), and full power while Android is busy that goes back to Windows when it is idle." },
             new GpuProfile { Id = "integrated", Name = "Integrated GPU (battery saver)", EmuGpu = "host", WinPref = 1,
                 Description = "Pins the renderer to the power-saving GPU (usually Intel). Cooler, quieter and easy on the battery: a good fit for an always-on second device." },
             new GpuProfile { Id = "auto", Name = "Windows default", EmuGpu = "host", WinPref = 0,
@@ -191,8 +193,9 @@ namespace Androidzy
             SetKey(lines, "hw.lcd.height", r.H.ToString());
             SetKey(lines, "hw.lcd.density", r.Dpi.ToString());
             SetKey(lines, "hw.initialOrientation", r.W >= r.H ? "landscape" : "portrait");
-            SetKey(lines, "hw.cpu.ncore", s.Cores.ToString());
-            SetKey(lines, "hw.ramSize", s.RamMb.ToString());
+            SetKey(lines, "hw.cpu.ncore", p.Cores(s.Cores).ToString());
+            SetKey(lines, "hw.ramSize", p.RamMb(s.RamMb).ToString());
+            if (p.Vsync > 0) SetKey(lines, "hw.lcd.vsync", p.Vsync.ToString());
             SetKey(lines, "hw.gpu.enabled", "yes");
             SetKey(lines, "hw.gpu.mode", p.EmuGpu);
             if (r.Fold) ApplyFold(lines, r); else RemoveFold(lines);

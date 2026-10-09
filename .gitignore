@@ -3,3 +3,4 @@ obj/
 .claude/
 *.log
 Androidzy.ini
+src/Local.cs

@@ -83,6 +83,25 @@ namespace Androidzy
             return "background Wi-Fi/Bluetooth scanning off, network location off, error reporting off";
         }
 
+        // Sets the phone's time zone (IANA id such as America/New_York) and stops it following the network.
+        // The shell may not use time_zone_detector (no SUGGEST_MANUAL_TIME_AND_ZONE), but it may call
+        // AlarmManager.setTimeZone, which is transaction 3 of IAlarmManager on Android 14.
+        // Returns the zone Android reports afterwards.
+        public static string SetTimezone(string serial, string zone)
+        {
+            Adb(serial, "shell settings put global auto_time_zone 0", 10000);
+            Adb(serial, "shell service call alarm 3 s16 " + Sh(zone), 10000);
+            return Adb(serial, "shell getprop persist.sys.timezone", 10000).Trim();
+        }
+
+        // Android's Private DNS (DNS over TLS): name lookups are encrypted, so the network in between
+        // cannot read or rewrite them. It does not change the IP address sites see.
+        public static void SetPrivateDns(string serial, string host)
+        {
+            Adb(serial, "shell settings put global private_dns_mode hostname", 10000);
+            Adb(serial, "shell settings put global private_dns_specifier " + Sh(host), 10000);
+        }
+
         // On a PC the emulator has a physical keyboard (your own), so keep Android's on-screen keyboard hidden.
         public static void HideSoftKeyboard(string serial)
         {

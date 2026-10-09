@@ -23,15 +23,24 @@ namespace Androidzy
         public static string Adb { get { return Path.Combine(Sdk, @"platform-tools\adb.exe"); } }
         public static string SystemImage { get { return Path.Combine(Sdk, ImageRel, "system.img"); } }
 
-        // Desktop folder whose contents are copied onto the phone automatically.
+        // Folder chosen in the app (Share folder > Move); empty = the default on the Desktop.
+        public static string ShareChoice = "";
+
+        // Folder whose contents are copied onto the phone automatically.
         public static string ShareDir
         {
             get
             {
                 string env = Environment.GetEnvironmentVariable("ANDROIDZY_SHARE");
                 if (!string.IsNullOrEmpty(env)) return env;
-                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Androidzy Share");
+                if (!string.IsNullOrEmpty(ShareChoice)) return ShareChoice;
+                return DefaultShareDir;
             }
+        }
+
+        public static string DefaultShareDir
+        {
+            get { return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Androidzy Share"); }
         }
 
         // present once a device has had its preinstalled apps removed; deleted on factory reset
