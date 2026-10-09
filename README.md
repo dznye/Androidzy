@@ -43,7 +43,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 
 ## Getting started
 
-1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 75 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
+1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 76 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
 2. Run `Androidzy.exe`.
    - If an Android SDK with the Android 14 *Google Play* system image is found (Android Studio's default location, `ANDROID_HOME` or `ANDROID_SDK_ROOT`), it is used as is.
    - Otherwise a **First-run setup** panel offers to download the emulator, platform tools and system image (about 2 GB) from Google, after you accept Google's license.

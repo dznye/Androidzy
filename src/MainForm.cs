@@ -449,6 +449,10 @@ namespace Androidzy
                 return;
             }
             chkWipe.Checked = false; chkCold.Checked = false;
+            Process watched = proc; int watchPort = port;
+            Thread w = new Thread(delegate() { WatchBoot(watchPort, watched); });
+            w.IsBackground = true;
+            w.Start();
             SetRunning(true);
             SetStatus("Starting...  (the very first boot can take a few minutes)");
         }
@@ -472,13 +476,34 @@ namespace Androidzy
             // a quick boot restores a snapshot and never prints "Boot completed"
             if (!booted && (line.IndexOf("boot completed", StringComparison.OrdinalIgnoreCase) >= 0 ||
                             line.IndexOf("Successfully loaded snapshot", StringComparison.OrdinalIgnoreCase) >= 0))
+                OnBooted();
+        }
+
+        // Android is up: show it and run the per-boot steps once. Reached from a log line or from the adb poll,
+        // whichever comes first (the emulator's output is buffered, so a quick-boot "ready" line can arrive late).
+        void OnBooted()
+        {
+            if (booted || proc == null) return;
+            booted = true;
+            SetStatus("Running  -  emulator-" + port + (gpuInUse.Length > 0 ? "  -  GPU: " + gpuInUse : ""));
+            int p = port; bool deb = chkDebloat.Checked;
+            Thread t = new Thread(delegate() { PostBoot(p, deb); });
+            t.IsBackground = true;
+            t.Start();
+        }
+
+        // Asks Android itself whether it has finished booting.
+        void WatchBoot(int consolePort, Process watched)
+        {
+            string serial = "emulator-" + consolePort;
+            DateTime end = DateTime.UtcNow.AddMinutes(10);
+            while (DateTime.UtcNow < end)
             {
-                booted = true;
-                SetStatus("Running  -  emulator-" + port + (gpuInUse.Length > 0 ? "  -  GPU: " + gpuInUse : ""));
-                int p = port; bool deb = chkDebloat.Checked;
-                Thread t = new Thread(delegate() { PostBoot(p, deb); });
-                t.IsBackground = true;
-                t.Start();
+                Thread.Sleep(3000);
+                try { if (watched.HasExited) return; } catch { return; }
+                string v = "";
+                try { v = Phone.Adb(serial, "shell getprop sys.boot_completed", 8000).Trim(); } catch { }
+                if (v == "1") { PostToUi(() => { if (proc == watched) OnBooted(); }); return; }
             }
         }
 
