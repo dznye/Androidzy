@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://dznye.github.io/Androidzy/sitemap.xml

@@ -1,12 +1,25 @@
 # Androidzy
 
-**Androidzy by [@dznye](https://github.com/dznye)** - a small Windows launcher for the official Android Emulator, with one-click GPU profiles. Android 14 with Google Play, tuned for games.
+**Androidzy by [@dznye](https://github.com/dznye)** - a free Android emulator for Windows PC, built for running **apps** (not just games). A second Android device on your desktop with real Google Play, the official Google emulator and one-click GPU profiles.
+
+Website: **https://dznye.github.io/Androidzy/**
 
 ![Androidzy](docs/screenshot.png)
 
 ## Why
 
-On laptops with two GPUs (Intel + NVIDIA/AMD) the emulator can render on the wrong one, or even run OpenGL on one GPU and Vulkan on the other. Androidzy pins both to the GPU you choose, sets up a sensible virtual device, and gets out of the way.
+Most Android emulators are marketed for games. Androidzy is for everything else you do on a phone, on the computer you already sit at all day:
+
+- a **second phone for work** - Slack, Teams, Gmail, Telegram, kept apart from your personal phone
+- **accounts you own or manage** - sign in to as many accounts as each app allows
+- **mobile-only apps on a big screen**, with keyboard, mouse, screenshots and recording
+- **testing apps** on real Android 14 with adb, without installing Android Studio
+
+Windows Subsystem for Android ended on March 5, 2025, so there is no built-in way to run Android apps on Windows 11 any more. Androidzy fills that gap.
+
+It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) the emulator can render on the wrong one, or even run OpenGL on one GPU and Vulkan on the other. Androidzy pins both to the GPU you choose, sets up a sensible virtual device, and gets out of the way.
+
+**Responsible use:** for accounts you own or are authorised to manage. Androidzy does not hide that it is an emulator, and some apps (many banking and DRM-protected streaming apps) block emulators. It currently runs one Android device at a time.
 
 ## Features
 

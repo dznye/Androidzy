@@ -1,0 +1,407 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Androidzy: Free Android Emulator for PC to Run Apps</title>
+<meta name="description" content="Androidzy is a free, open-source Android emulator for Windows built for apps, not games. Run Google Play apps on your PC as a second device.">
+<link rel="canonical" href="https://dznye.github.io/Androidzy/">
+<meta name="robots" content="index, follow, max-image-preview:large">
+<meta name="theme-color" content="#0a7a55">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+
+<meta property="og:type" content="website">
+<meta property="og:site_name" content="Androidzy">
+<meta property="og:title" content="Androidzy: Free Android Emulator for PC to Run Apps">
+<meta property="og:description" content="A second Android device on your Windows PC. Google Play, official Google emulator, GPU profiles. Built for apps, not games. Free and open source.">
+<meta property="og:url" content="https://dznye.github.io/Androidzy/">
+<meta property="og:image" content="https://dznye.github.io/Androidzy/og.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:image:alt" content="Androidzy: Android emulator for PC, built for apps, not games">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="Androidzy: Free Android Emulator for PC to Run Apps">
+<meta name="twitter:description" content="A second Android device on your Windows PC. Google Play, official Google emulator, GPU profiles. Free and open source.">
+<meta name="twitter:image" content="https://dznye.github.io/Androidzy/og.png">
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Androidzy",
+  "description": "A free, open-source Android emulator launcher for Windows, built for running Android apps on a PC as a second device. Runs Google's official Android emulator with Google Play and GPU profiles.",
+  "url": "https://dznye.github.io/Androidzy/",
+  "applicationCategory": "UtilitiesApplication",
+  "operatingSystem": "Windows 10, Windows 11",
+  "softwareVersion": "1.0",
+  "license": "https://opensource.org/license/mit",
+  "isAccessibleForFree": true,
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "downloadUrl": "https://github.com/dznye/Androidzy",
+  "codeRepository": "https://github.com/dznye/Androidzy",
+  "screenshot": "https://dznye.github.io/Androidzy/screenshot.png",
+  "image": "https://dznye.github.io/Androidzy/og.png",
+  "author": { "@type": "Person", "name": "dznye", "url": "https://github.com/dznye", "alternateName": "@dznye" },
+  "featureList": [
+    "Android 14 with Google Play",
+    "Official Google Android emulator",
+    "GPU profiles: dedicated, integrated, Windows default, software",
+    "Quick-boot snapshots",
+    "Reuses an existing Android SDK or downloads components from Google"
+  ]
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Is there an Android emulator for PC that is made for apps, not games?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Androidzy is. It runs the official Google Android Emulator with Google Play on Windows, but it is set up for everyday apps: a clean Android 14 device that starts in seconds, stays signed in, and has no keymapping, macros or game store in the way." }
+    },
+    {
+      "@type": "Question",
+      "name": "How do I run Android apps on Windows 11 now that Windows Subsystem for Android is gone?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Microsoft ended support for Windows Subsystem for Android on March 5, 2025. Phone Link can mirror a supported phone and Google Play Games on PC covers games. For general apps you need an emulator: install Androidzy, accept Google's license on first run, sign in to Google Play and install your apps." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I use Androidzy as a second phone to keep work and personal accounts apart?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Androidzy gives you a separate Android 14 device on your PC with its own Google account, apps and data, so work chat, email and social accounts stay apart from your personal phone. Use it for accounts you own or are authorised to manage." }
+    },
+    {
+      "@type": "Question",
+      "name": "Can I sign in to multiple accounts or run multiple instances?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Within each app's own limits, yes. Instagram lets you add up to five accounts and Telegram supports several, and Android lets you add multiple Google accounts. Some services, such as WhatsApp, tie an account to a phone number, so a second account needs its own number. Androidzy currently runs one Android device at a time. Running several side by side is not supported yet." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does Androidzy include Google Play?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It uses Google's official Android 14 system image with Google Play. Nothing from Google is bundled with Androidzy. On first run it downloads the emulator and image from Google's servers (about 2 GB) after you accept Google's license, or it reuses an Android Studio SDK you already have." }
+    },
+    {
+      "@type": "Question",
+      "name": "Will banking and streaming apps work in Androidzy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Some may not. Banking, payment and DRM-protected streaming apps often check that they run on a certified physical phone and may block or limit any emulator. Androidzy does not try to hide that it is an emulator, so use a real phone for apps that require one." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Androidzy free and safe?",
+      "acceptedAnswer": { "@type": "Answer", "text": "It is free. The launcher is open source under the MIT license, so you can read exactly what it does, and emulator usage metrics are switched off. The download is not code-signed yet, so Windows SmartScreen may show a warning. You can also build it yourself from source." }
+    },
+    {
+      "@type": "Question",
+      "name": "What do I need to run Androidzy?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Windows 10 or 11 (64-bit), a CPU with virtualization turned on in the BIOS, the Windows Hypervisor Platform feature, 8 GB of RAM (4 GB goes to Android by default) and about 6 GB of free disk space." }
+    },
+    {
+      "@type": "Question",
+      "name": "Is Androidzy an alternative to BlueStacks, LDPlayer or MuMu?",
+      "acceptedAnswer": { "@type": "Answer", "text": "For everyday apps, yes. Those players are built around games, with keymapping, macros and many simultaneous instances. Androidzy does less on purpose: one clean Android 14 device with GPU profiles. If you need keymapping or many instances at once, a gaming emulator fits better." }
+    }
+  ]
+}
+</script>
+
+<style>
+:root{
+  --bg:#f7faf8; --surface:#ffffff; --text:#0f1b17; --muted:#4d5f57; --line:#dde7e2;
+  --accent:#0a7a55; --accent-hover:#086645; --on-accent:#ffffff; --soft:#e5f5ed; --soft-text:#075a3f;
+  --warn-bg:#fff6e0; --warn-line:#f0d28a; --warn-text:#5a4300;
+  --shadow:0 1px 2px rgba(15,27,23,.06),0 10px 30px rgba(15,27,23,.08);
+  --radius:16px;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --bg:#08110e; --surface:#0f1b16; --text:#e8f1ed; --muted:#9bb0a6; --line:#1f322a;
+    --accent:#2ee6a0; --accent-hover:#5af0b6; --on-accent:#03140c; --soft:#10281e; --soft-text:#7df0c1;
+    --warn-bg:#241d08; --warn-line:#5b4a14; --warn-text:#f1d98a;
+    --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
+  }
+}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+@media (prefers-reduced-motion:reduce){html{scroll-behavior:auto}}
+body{margin:0;background:var(--bg);color:var(--text);font:16px/1.65 system-ui,-apple-system,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;-webkit-font-smoothing:antialiased}
+img{max-width:100%;height:auto;display:block}
+a{color:var(--accent)}
+a:hover{color:var(--accent-hover)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:3px;border-radius:6px}
+.wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+.skip{position:absolute;left:-999px;top:8px;background:var(--accent);color:var(--on-accent);padding:8px 14px;border-radius:8px;z-index:20}
+.skip:focus{left:8px}
+
+/* header */
+header.site{position:sticky;top:0;z-index:10;background:color-mix(in srgb,var(--bg) 88%,transparent);backdrop-filter:saturate(1.4) blur(10px);border-bottom:1px solid var(--line)}
+header.site .wrap{display:flex;align-items:center;gap:20px;height:64px}
+.brand{display:flex;align-items:center;gap:10px;font-weight:700;font-size:1.15rem;color:var(--text);text-decoration:none}
+.brand svg{width:30px;height:30px}
+nav{margin-left:auto;display:flex;align-items:center;gap:6px}
+nav a{color:var(--muted);text-decoration:none;padding:8px 12px;border-radius:8px;font-size:.95rem}
+nav a:hover{color:var(--text);background:var(--soft)}
+nav a.btn-sm{background:var(--accent);color:var(--on-accent);font-weight:600}
+nav a.btn-sm:hover{background:var(--accent-hover);color:var(--on-accent)}
+@media (max-width:760px){nav a:not(.btn-sm){display:none}}
+
+/* hero */
+.hero{padding:64px 0 40px;background:radial-gradient(900px 400px at 85% -10%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%)}
+.hero .wrap{display:grid;grid-template-columns:1.1fr .9fr;gap:48px;align-items:center}
+.eyebrow{display:inline-block;background:var(--soft);color:var(--soft-text);font-weight:600;font-size:.85rem;padding:6px 12px;border-radius:999px;margin:0 0 18px}
+h1{font-size:clamp(2.1rem,4.6vw,3.4rem);line-height:1.1;letter-spacing:-.02em;margin:0 0 18px}
+h1 em{font-style:normal;color:var(--accent)}
+.lead{font-size:1.15rem;color:var(--muted);margin:0 0 26px;max-width:36em}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:650;text-decoration:none;border:1px solid transparent;font-size:1rem}
+.btn.primary{background:var(--accent);color:var(--on-accent)}
+.btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
+.btn.ghost{border-color:var(--line);color:var(--text);background:var(--surface)}
+.btn.ghost:hover{border-color:var(--accent);color:var(--text)}
+.chips{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:.92rem}
+.chips li::before{content:"\2713";color:var(--accent);font-weight:700;margin-right:6px}
+.shot{justify-self:center;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line);max-width:420px;width:100%;background:var(--surface)}
+@media (max-width:860px){.hero .wrap{grid-template-columns:1fr;gap:32px}.hero{padding-top:40px}}
+
+/* sections */
+section{padding:64px 0}
+section.alt{background:var(--surface);border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+h2{font-size:clamp(1.55rem,3vw,2.15rem);line-height:1.2;letter-spacing:-.015em;margin:0 0 12px}
+.sub{color:var(--muted);max-width:42em;margin:0 0 34px;font-size:1.05rem}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(290px,1fr));gap:18px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:var(--radius);padding:24px}
+section.alt .card{background:var(--bg)}
+.card h3{margin:0 0 8px;font-size:1.1rem}
+.card p{margin:0;color:var(--muted)}
+.icon{width:42px;height:42px;border-radius:12px;background:var(--soft);color:var(--soft-text);display:grid;place-items:center;margin-bottom:14px;font-size:1.25rem}
+.notice{margin-top:26px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-text);border-radius:var(--radius);padding:18px 22px}
+.notice strong{display:block;margin-bottom:4px}
+.notice p{margin:0}
+
+/* steps */
+ol.steps{list-style:none;margin:0 0 30px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;counter-reset:s}
+ol.steps li{counter-increment:s;background:var(--bg);border:1px solid var(--line);border-radius:var(--radius);padding:22px 22px 22px 22px}
+ol.steps li::before{content:counter(s);display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:var(--accent);color:var(--on-accent);font-weight:700;margin-bottom:12px}
+ol.steps h3{margin:0 0 6px;font-size:1.05rem}
+ol.steps p{margin:0;color:var(--muted)}
+.req{background:var(--soft);border-radius:var(--radius);padding:20px 24px}
+.req h3{margin:0 0 8px;font-size:1.05rem;color:var(--soft-text)}
+.req ul{margin:0;padding-left:20px;columns:2;column-gap:36px}
+@media (max-width:700px){.req ul{columns:1}}
+
+/* table */
+.table-wrap{overflow-x:auto;border:1px solid var(--line);border-radius:var(--radius);background:var(--surface)}
+table{border-collapse:collapse;width:100%;min-width:720px;font-size:.95rem}
+th,td{text-align:left;padding:14px 16px;border-bottom:1px solid var(--line);vertical-align:top}
+thead th{background:var(--soft);color:var(--soft-text);font-weight:650}
+tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
+tbody th{font-weight:650;white-space:nowrap}
+tr.me{background:color-mix(in srgb,var(--accent) 9%,transparent)}
+.notyet{margin-top:22px;color:var(--muted)}
+.notyet ul{margin:8px 0 0;padding-left:20px}
+
+/* faq */
+details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;padding:0 20px}
+details[open]{box-shadow:var(--shadow)}
+summary{cursor:pointer;font-weight:650;padding:18px 28px 18px 0;list-style:none;position:relative}
+summary::-webkit-details-marker{display:none}
+summary::after{content:"+";position:absolute;right:0;top:50%;transform:translateY(-50%);font-size:1.4rem;color:var(--accent);font-weight:400}
+details[open] summary::after{content:"\2212"}
+details p{margin:0 0 18px;color:var(--muted)}
+
+footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+footer .row{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;align-items:flex-start}
+footer a{color:var(--muted)}
+footer a:hover{color:var(--accent)}
+footer p{margin:6px 0 0;max-width:46em}
+</style>
+</head>
+<body>
+<a class="skip" href="#main">Skip to content</a>
+
+<header class="site">
+  <div class="wrap">
+    <a class="brand" href="./" aria-label="Androidzy home">
+      <svg viewBox="0 0 64 64" aria-hidden="true"><defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#24d680"/><stop offset="1" stop-color="#08785c"/></linearGradient></defs><rect width="64" height="64" rx="14" fill="url(#g)"/><path d="M24 18v28l22-14z" fill="#fff"/></svg>
+      Androidzy
+    </a>
+    <nav aria-label="Primary">
+      <a href="#use-cases">Use cases</a>
+      <a href="#features">Features</a>
+      <a href="#how-it-works">How it works</a>
+      <a href="#compare">Compare</a>
+      <a href="#faq">FAQ</a>
+      <a class="btn-sm" href="https://github.com/dznye/Androidzy">GitHub</a>
+    </nav>
+  </div>
+</header>
+
+<main id="main">
+
+<section class="hero" aria-labelledby="top">
+  <div class="wrap">
+    <div>
+      <p class="eyebrow">Free Android emulator for Windows</p>
+      <h1 id="top">Android emulator for PC, built for apps <em>&mdash; not games</em></h1>
+      <p class="lead">Androidzy puts a clean Android 14 device with Google Play on your Windows desktop. Use it as a second phone for work chat, email and the accounts you manage, or to run mobile-only apps on a big screen.</p>
+      <div class="cta">
+        <a class="btn primary" href="https://github.com/dznye/Androidzy#getting-started">Get Androidzy &mdash; free</a>
+        <a class="btn ghost" href="#how-it-works">See how it works</a>
+      </div>
+      <ul class="chips">
+        <li>Free &amp; open source (MIT)</li>
+        <li>Official Google emulator</li>
+        <li>Windows 10 &amp; 11</li>
+        <li>No ads in the launcher</li>
+      </ul>
+    </div>
+    <img class="shot" src="screenshot.png" width="636" height="779" alt="Androidzy launcher window showing GPU profile, resolution, CPU and memory settings and a Launch button">
+  </div>
+</section>
+
+<section id="use-cases" aria-labelledby="uc-h">
+  <div class="wrap">
+    <h2 id="uc-h">Run Android apps on your PC, as a second device</h2>
+    <p class="sub">Most Android emulators are marketed for games. Androidzy is for everything else you do on a phone, on the computer you already sit at all day.</p>
+    <div class="grid">
+      <article class="card"><div class="icon" aria-hidden="true">&#128188;</div><h3>A second phone for work</h3><p>Keep Slack, Teams, Gmail or Telegram on your PC, separate from your personal phone. Close the window and work is off.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128101;</div><h3>Accounts you own or manage</h3><p>Sign in to as many accounts as each app allows. Instagram, for example, lets you add up to five on one device. Handy for creators, small businesses and social media managers.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128421;</div><h3>Mobile-only apps, big screen</h3><p>Some apps and features only exist on Android. Run them with your keyboard and mouse in a 1080p window, and take screenshots or recordings without leaving your desk.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128295;</div><h3>Test apps on real Android 14</h3><p>Developers and QA get Google's official emulator and adb without installing Android Studio. Install an APK, test, reset.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#129514;</div><h3>Try apps away from your phone</h3><p>Install unfamiliar apps on a separate device first, and reset it with one click (Wipe all data) when you are done.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#127811;</div><h3>Quiet, always-on running</h3><p>The Integrated GPU profile uses the power-saving graphics chip, so the emulator runs cooler and quieter than on the dedicated card. A good fit for a device you leave open all day.</p></article>
+    </div>
+    <div class="notice" role="note">
+      <strong>Use it responsibly</strong>
+      <p>Androidzy is for accounts you own or are authorised to manage. It does not hide that it is an emulator and it is not a tool for getting around platform rules. Some apps, including many banking apps and DRM-protected streaming apps, check for a certified physical phone and may block any emulator.</p>
+    </div>
+  </div>
+</section>
+
+<section id="features" class="alt" aria-labelledby="f-h">
+  <div class="wrap">
+    <h2 id="f-h">Why Androidzy for everyday apps</h2>
+    <p class="sub">Small, quiet and out of your way. It launches Google's own emulator with sensible settings and nothing else.</p>
+    <div class="grid">
+      <article class="card"><h3>The official Google emulator</h3><p>The same emulator Android Studio uses, running Android 14 with Google Play. No third-party Android fork, no bundled store.</p></article>
+      <article class="card"><h3>GPU profiles that stick</h3><p>Laptops with two graphics chips often render on the wrong one. Choose Dedicated, Integrated, Windows default or Software and Androidzy pins OpenGL and Vulkan to the same GPU. The status line shows which one is in use.</p></article>
+      <article class="card"><h3>Back in seconds</h3><p>Quick-boot snapshots restore your device, signed in and where you left it. On our test PC the snapshot restores in about a second.</p></article>
+      <article class="card"><h3>Zero setup</h3><p>Reuses the Android SDK you already have, or downloads the emulator and Android 14 image from Google on first run (about 2 GB) after you accept Google's license.</p></article>
+      <article class="card"><h3>Tiny and open</h3><p>One 60 KB executable, MIT-licensed source, emulator usage metrics switched off. Read every line on GitHub.</p></article>
+      <article class="card"><h3>Only the controls you need</h3><p>Resolution presets, CPU and memory, cold boot, factory reset and logs. No keymapping, macros or game store in the way.</p></article>
+    </div>
+  </div>
+</section>
+
+<section id="how-it-works" aria-labelledby="h-h">
+  <div class="wrap">
+    <h2 id="h-h">How to run Android apps on Windows 10 and 11</h2>
+    <p class="sub">Four steps from download to your first app.</p>
+    <ol class="steps">
+      <li><h3>Get Androidzy</h3><p>Download it from GitHub or build it yourself with one script. It is a single small .exe.</p></li>
+      <li><h3>First-run setup</h3><p>Accept Google's license and Androidzy fetches the emulator and Android 14 image (about 2 GB), or it reuses your Android Studio SDK.</p></li>
+      <li><h3>Press Launch</h3><p>Pick a GPU profile and a window size, then launch. Android boots in a normal window.</p></li>
+      <li><h3>Sign in and install</h3><p>Open Google Play, sign in and install your apps. Quick-boot keeps them ready for next time.</p></li>
+    </ol>
+    <div class="req">
+      <h3>What you need</h3>
+      <ul>
+        <li>Windows 10 or 11, 64-bit</li>
+        <li>Virtualization enabled in the BIOS</li>
+        <li>The Windows Hypervisor Platform feature</li>
+        <li>8 GB of RAM (Android uses 4 GB by default)</li>
+        <li>About 6 GB of free disk space</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section class="alt" aria-labelledby="wsa-h">
+  <div class="wrap">
+    <h2 id="wsa-h">Windows Subsystem for Android is gone. What now?</h2>
+    <p class="sub" style="margin-bottom:0">Microsoft ended support for Windows Subsystem for Android on March 5, 2025, which removed the built-in way to run Android apps on Windows 11. Phone Link can mirror a supported phone and Google Play Games on PC covers games. If you want general apps with Google Play on your PC, you need an emulator, and Androidzy is built for exactly that.</p>
+  </div>
+</section>
+
+<section id="compare" aria-labelledby="c-h">
+  <div class="wrap">
+    <h2 id="c-h">Ways to run Android apps on a PC, compared</h2>
+    <p class="sub">Pick the tool that matches what you actually do.</p>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th scope="col">Option</th><th scope="col">Best for</th><th scope="col">Google Play</th><th scope="col">Cost</th><th scope="col">Several devices at once</th></tr></thead>
+        <tbody>
+          <tr class="me"><th scope="row">Androidzy</th><td>Everyday apps on a second device</td><td>Yes</td><td>Free, open-source launcher</td><td>Not yet</td></tr>
+          <tr><th scope="row">Gaming emulators (BlueStacks, LDPlayer, MuMu)</th><td>Games: keymapping, macros, controllers</td><td>Yes</td><td>Free tiers; some include ads or paid plans</td><td>Yes</td></tr>
+          <tr><th scope="row">Android Studio emulator</th><td>App developers</td><td>Yes, with Play images</td><td>Free, needs the full IDE</td><td>Yes</td></tr>
+          <tr><th scope="row">Phone Link</th><td>Mirroring your own phone</td><td>Uses your phone's apps</td><td>Free</td><td>No</td></tr>
+          <tr><th scope="row">Windows Subsystem for Android</th><td>Discontinued</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="notyet">
+      <strong>What Androidzy does not do (yet)</strong>
+      <ul>
+        <li>Run several Android devices side by side.</li>
+        <li>Keymapping, macros or gamepad mapping for games.</li>
+        <li>Run on macOS or Linux. It is Windows 64-bit only.</li>
+        <li>Ship a code-signed installer, so Windows SmartScreen may warn you.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<section id="faq" class="alt" aria-labelledby="q-h">
+  <div class="wrap">
+    <h2 id="q-h">Frequently asked questions</h2>
+    <p class="sub">Straight answers, including the limits.</p>
+
+    <details><summary>Is there an Android emulator for PC that is made for apps, not games?</summary>
+      <p>Androidzy is. It runs the official Google Android Emulator with Google Play on Windows, but it is set up for everyday apps: a clean Android 14 device that starts in seconds, stays signed in, and has no keymapping, macros or game store in the way.</p></details>
+
+    <details><summary>How do I run Android apps on Windows 11 now that Windows Subsystem for Android is gone?</summary>
+      <p>Microsoft ended support for Windows Subsystem for Android on March 5, 2025. Phone Link can mirror a supported phone and Google Play Games on PC covers games. For general apps you need an emulator: install Androidzy, accept Google's license on first run, sign in to Google Play and install your apps.</p></details>
+
+    <details><summary>Can I use Androidzy as a second phone to keep work and personal accounts apart?</summary>
+      <p>Yes. Androidzy gives you a separate Android 14 device on your PC with its own Google account, apps and data, so work chat, email and social accounts stay apart from your personal phone. Use it for accounts you own or are authorised to manage.</p></details>
+
+    <details><summary>Can I sign in to multiple accounts or run multiple instances?</summary>
+      <p>Within each app's own limits, yes. Instagram lets you add up to five accounts and Telegram supports several, and Android lets you add multiple Google accounts. Some services, such as WhatsApp, tie an account to a phone number, so a second account needs its own number. Androidzy currently runs one Android device at a time. Running several side by side is not supported yet.</p></details>
+
+    <details><summary>Does Androidzy include Google Play?</summary>
+      <p>It uses Google's official Android 14 system image with Google Play. Nothing from Google is bundled with Androidzy. On first run it downloads the emulator and image from Google's servers (about 2 GB) after you accept Google's license, or it reuses an Android Studio SDK you already have.</p></details>
+
+    <details><summary>Will banking and streaming apps work in Androidzy?</summary>
+      <p>Some may not. Banking, payment and DRM-protected streaming apps often check that they run on a certified physical phone and may block or limit any emulator. Androidzy does not try to hide that it is an emulator, so use a real phone for apps that require one.</p></details>
+
+    <details><summary>Is Androidzy free and safe?</summary>
+      <p>It is free. The launcher is open source under the MIT license, so you can read exactly what it does, and emulator usage metrics are switched off. The download is not code-signed yet, so Windows SmartScreen may show a warning. You can also build it yourself from source.</p></details>
+
+    <details><summary>What do I need to run Androidzy?</summary>
+      <p>Windows 10 or 11 (64-bit), a CPU with virtualization turned on in the BIOS, the Windows Hypervisor Platform feature, 8 GB of RAM (4 GB goes to Android by default) and about 6 GB of free disk space.</p></details>
+
+    <details><summary>Is Androidzy an alternative to BlueStacks, LDPlayer or MuMu?</summary>
+      <p>For everyday apps, yes. Those players are built around games, with keymapping, macros and many simultaneous instances. Androidzy does less on purpose: one clean Android 14 device with GPU profiles. If you need keymapping or many instances at once, a gaming emulator fits better.</p></details>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <div class="row">
+      <div>
+        <strong>Androidzy by <a href="https://github.com/dznye">@dznye</a></strong>
+        <p>Android emulator for Windows PC, built for running apps. MIT licensed.</p>
+        <p>Androidzy is an independent project and is not affiliated with, sponsored by or endorsed by Google. Android and Google Play are trademarks of Google LLC. The Android Emulator, platform tools and system image are provided by Google under the <a href="https://developer.android.com/studio/terms">Android SDK License Agreement</a>.</p>
+      </div>
+      <div>
+        <a href="https://github.com/dznye/Androidzy">Source on GitHub</a><br>
+        <a href="https://github.com/dznye/Androidzy/issues">Report an issue</a><br>
+        <a href="https://github.com/dznye/Androidzy/blob/main/LICENSE">MIT License</a>
+      </div>
+    </div>
+  </div>
+</footer>
+</body>
+</html>

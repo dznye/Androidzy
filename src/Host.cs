@@ -16,9 +16,9 @@ namespace Androidzy
         public static readonly GpuProfile[] Profiles =
         {
             new GpuProfile { Id = "dedicated", Name = "Dedicated GPU (best performance)", EmuGpu = "host", WinPref = 2,
-                Description = "Pins the emulator's renderer to your high-performance GPU (NVIDIA / AMD) and uses its native drivers. Best for games." },
+                Description = "Pins the emulator's renderer to your high-performance GPU (NVIDIA / AMD) and uses its native drivers. Smoothest for scrolling, video and 3D." },
             new GpuProfile { Id = "integrated", Name = "Integrated GPU (battery saver)", EmuGpu = "host", WinPref = 1,
-                Description = "Pins the renderer to the power-saving GPU (usually Intel). Cooler and quieter, slower in heavy games." },
+                Description = "Pins the renderer to the power-saving GPU (usually Intel). Cooler, quieter and easy on the battery: a good fit for an always-on second device." },
             new GpuProfile { Id = "auto", Name = "Windows default", EmuGpu = "host", WinPref = 0,
                 Description = "Hardware GPU, but Windows decides which one. Removes any override this app set earlier." },
             new GpuProfile { Id = "software", Name = "Software renderer (compatibility)", EmuGpu = "swangle", WinPref = 0,
