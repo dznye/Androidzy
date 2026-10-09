@@ -522,7 +522,10 @@ namespace Androidzy
                 say("> device name: " + Phone.SetDeviceName(serial, isFold ? "Pixel Fold" : "Androidzy"));
                 if (isFold)
                 {
-                    Phone.Adb(serial, "shell cmd device_state state 2", 10000);   // 2 = OPENED
+                    // open the real hinge (the emulator's window and Android both follow it); a quick-boot restore can
+                    // leave it closed, and forcing Android's state without it leaves the window half-width
+                    Phone.Adb(serial, "shell cmd device_state state reset", 10000);
+                    Phone.Adb(serial, "emu sensor set hinge-angle0 180", 10000);
                     // the emulator's pixel_fold hardware overlay is what draws the camera hole; switch it off
                     Phone.Adb(serial, "shell cmd overlay disable --user 0 com.android.internal.emulation.pixel_fold", 10000);
                     say("> Pixel Fold unfolded, camera hole removed");
