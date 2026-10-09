@@ -23,6 +23,20 @@ namespace Androidzy
         public static string Adb { get { return Path.Combine(Sdk, @"platform-tools\adb.exe"); } }
         public static string SystemImage { get { return Path.Combine(Sdk, ImageRel, "system.img"); } }
 
+        // Desktop folder whose contents are copied onto the phone automatically.
+        public static string ShareDir
+        {
+            get
+            {
+                string env = Environment.GetEnvironmentVariable("ANDROIDZY_SHARE");
+                if (!string.IsNullOrEmpty(env)) return env;
+                return Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.DesktopDirectory), "Androidzy Share");
+            }
+        }
+
+        // present once a device has had its preinstalled apps removed; deleted on factory reset
+        public static string DebloatFlag { get { return Path.Combine(AvdHome, AvdName + ".avd", "androidzy-debloated.flag"); } }
+
         // every executable that does GPU work for the emulator; the Windows GPU preference is set per exe
         public static string[] GpuExes
         {

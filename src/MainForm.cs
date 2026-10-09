@@ -18,7 +18,8 @@ namespace Androidzy
 
         ComboBox cbProfile, cbRes, cbRam;
         NumericUpDown nudCores;
-        CheckBox chkCold, chkSave, chkWipe;
+        CheckBox chkCold, chkSave, chkWipe, chkDebloat;
+        ShareSync share;
         Label lblSub, lblDesc, lblStatus;
         Button btnLaunch, btnStop;
         TextBox txtLog;
@@ -194,9 +195,10 @@ namespace Androidzy
             chkSave = new CheckBox(); chkSave.Text = "Save state on exit (fast next start)"; chkSave.AutoSize = true;
             chkCold = new CheckBox(); chkCold.Text = "Cold boot this time"; chkCold.AutoSize = true;
             chkWipe = new CheckBox(); chkWipe.Text = "Wipe all data (factory reset)"; chkWipe.AutoSize = true;
+            chkDebloat = new CheckBox(); chkDebloat.Text = "Remove preinstalled apps (keeps Play Store, Files, Settings)"; chkDebloat.AutoSize = true;
             FlowLayoutPanel opts = new FlowLayoutPanel();
             opts.AutoSize = true; opts.Margin = new Padding(3, 8, 3, 0);
-            opts.Controls.Add(chkSave); opts.Controls.Add(chkCold); opts.Controls.Add(chkWipe);
+            opts.Controls.Add(chkSave); opts.Controls.Add(chkCold); opts.Controls.Add(chkWipe); opts.Controls.Add(chkDebloat);
             AddRoot(root, opts, SizeType.AutoSize);
 
             // buttons
@@ -204,12 +206,14 @@ namespace Androidzy
             btnLaunch.Font = new Font("Segoe UI Semibold", 10F);
             btnStop = new Button(); btnStop.Text = "Stop"; btnStop.Size = new Size(90, 34); btnStop.Enabled = false;
             Button btnLogs = new Button(); btnLogs.Text = "Open logs"; btnLogs.Size = new Size(100, 34);
+            Button btnShare = new Button(); btnShare.Text = "Share folder"; btnShare.Size = new Size(110, 34);
             btnLaunch.Click += delegate { Launch(); };
             btnStop.Click += delegate { StopAsync(); };
             btnLogs.Click += delegate { try { Directory.CreateDirectory(Paths.LogDir); Process.Start(Paths.LogDir); } catch { } };
+            btnShare.Click += delegate { try { EnsureShareFolder(); Process.Start(Paths.ShareDir); } catch { } };
             FlowLayoutPanel btns = new FlowLayoutPanel();
             btns.AutoSize = true; btns.Margin = new Padding(3, 10, 3, 4);
-            btns.Controls.Add(btnLaunch); btns.Controls.Add(btnStop); btns.Controls.Add(btnLogs);
+            btns.Controls.Add(btnLaunch); btns.Controls.Add(btnStop); btns.Controls.Add(btnShare); btns.Controls.Add(btnLogs);
             AddRoot(root, btns, SizeType.AutoSize);
 
             lblStatus = new Label(); lblStatus.AutoSize = true; lblStatus.Margin = new Padding(6, 4, 3, 6);
@@ -231,7 +235,9 @@ namespace Androidzy
             nudCores.Value = st.Cores;
             cbRam.SelectedIndex = Array.IndexOf(Host.RamChoicesMb, st.RamMb);
             chkSave.Checked = st.SaveOnExit && !cli.NoSave;
+            chkDebloat.Checked = st.Debloat;
             chkCold.Checked = cli.Cold;
+            EnsureShareFolder();
             cbProfile.SelectedIndexChanged += delegate { ShowProfileInfo(); };
             ShowProfileInfo();
 
@@ -249,6 +255,23 @@ namespace Androidzy
         }
 
         void SetStatus(string text) { lblStatus.Text = text; }
+
+        // The desktop folder that is copied to the phone automatically; created on every start if missing.
+        static void EnsureShareFolder()
+        {
+            try
+            {
+                string d = Paths.ShareDir;
+                if (Directory.Exists(d)) return;
+                Directory.CreateDirectory(d);
+                File.WriteAllText(Path.Combine(d, "README.txt"),
+                    "Drop files into this folder while Androidzy is running and they are copied to the phone automatically.\r\n\r\n" +
+                    "  Photos       ->  Pictures/Androidzy\r\n  Videos       ->  Movies/Androidzy\r\n" +
+                    "  Music        ->  Music/Androidzy\r\n  Anything else ->  Download/Androidzy\r\n\r\n" +
+                    "Open Files (or Photos, a music or video app) on the phone to find them.\r\n");
+            }
+            catch { }
+        }
 
         void Error(string msg) { MessageBox.Show(this, msg, "Androidzy", MessageBoxButtons.OK, MessageBoxIcon.Error); }
 
@@ -335,7 +358,7 @@ namespace Androidzy
             btnLaunch.Enabled = !running && sdkReady;
             btnStop.Enabled = running;
             cbProfile.Enabled = cbRes.Enabled = nudCores.Enabled = cbRam.Enabled = !running;
-            chkCold.Enabled = chkWipe.Enabled = chkSave.Enabled = !running;
+            chkCold.Enabled = chkWipe.Enabled = chkSave.Enabled = chkDebloat.Enabled = !running;
         }
 
         void Launch()
@@ -356,7 +379,9 @@ namespace Androidzy
             st.Profile = prof.Id; st.Res = cbRes.SelectedIndex; st.Cores = (int)nudCores.Value;
             st.RamMb = Host.RamChoicesMb[cbRam.SelectedIndex];
             if (!cli.NoSave) st.SaveOnExit = chkSave.Checked;   // --no-save is a one-off, never persisted
+            st.Debloat = chkDebloat.Checked;
             st.Save();
+            if (chkWipe.Checked) { try { File.Delete(Paths.DebloatFlag); } catch { } }   // a factory reset brings the apps back
 
             try
             {
@@ -450,11 +475,48 @@ namespace Androidzy
             {
                 booted = true;
                 SetStatus("Running  -  emulator-" + port + (gpuInUse.Length > 0 ? "  -  GPU: " + gpuInUse : ""));
+                int p = port; bool deb = chkDebloat.Checked;
+                Thread t = new Thread(delegate() { PostBoot(p, deb); });
+                t.IsBackground = true;
+                t.Start();
             }
+        }
+
+        // Runs on every boot, in the background, once Android is up.
+        void PostBoot(int consolePort, bool removeApps)
+        {
+            string serial = "emulator-" + consolePort;
+            Action<string> say = delegate(string m) { PostToUi(() => AppendLog(m)); };
+            try
+            {
+                if (!Phone.WaitForBoot(serial, 180000)) { say("> post-boot steps skipped: Android did not report ready"); return; }
+
+                say(Phone.SetUsLocation(serial) ? "> location set to the US (New York)" : "> could not set the location");
+
+                if (removeApps && !File.Exists(Paths.DebloatFlag))
+                {
+                    say("> removing preinstalled apps (keeping Play Store, Files, Settings)...");
+                    int n = Phone.Debloat(serial, say);
+                    try { File.WriteAllText(Paths.DebloatFlag, DateTime.Now.ToString("s")); } catch { }
+                    say("> removed " + n + " apps");
+                }
+
+                ShareSync s = new ShareSync(serial, Paths.ShareDir, say);
+                s.Start();
+                PostToUi(() => { if (proc != null) { StopShare(); share = s; } else s.Dispose(); });
+                say("> share folder ready: " + Paths.ShareDir);
+            }
+            catch (Exception ex) { say("> post-boot error: " + ex.Message); }
+        }
+
+        void StopShare()
+        {
+            if (share != null) { try { share.Dispose(); } catch { } share = null; }
         }
 
         void OnExited()
         {
+            StopShare();
             int code = 0;
             try { code = proc.ExitCode; } catch { }
             proc = null;

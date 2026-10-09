@@ -1,11 +1,13 @@
 # Builds bin\Androidzy.exe with the C# compiler that ships with Windows (.NET Framework 4.x).
 # No SDK, Visual Studio or NuGet needed.
 #
-#   powershell -ExecutionPolicy Bypass -File build.ps1
+#   powershell -ExecutionPolicy Bypass -File build.ps1            (output: bin\Androidzy.exe)
+#   powershell -ExecutionPolicy Bypass -File build.ps1 -OutDir X  (output: X\Androidzy.exe)
+param([string]$OutDir)
 $ErrorActionPreference = 'Stop'
 $root = Split-Path -Parent $MyInvocation.MyCommand.Path
 $src  = Join-Path $root 'src'
-$bin  = Join-Path $root 'bin'
+$bin  = if ($OutDir) { $OutDir } else { Join-Path $root 'bin' }
 $obj  = Join-Path $root 'obj'
 $csc  = "$env:WINDIR\Microsoft.NET\Framework64\v4.0.30319\csc.exe"
 if (-not (Test-Path $csc)) { throw "csc.exe not found: $csc" }

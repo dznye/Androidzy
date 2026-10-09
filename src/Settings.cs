@@ -10,6 +10,7 @@ namespace Androidzy
         public int Cores = Math.Max(2, Math.Min(6, Environment.ProcessorCount / 2));
         public int RamMb = 4096;
         public bool SaveOnExit = true;
+        public bool Debloat = true;
         public bool LicenseAccepted;
 
         public static Settings Load()
@@ -31,6 +32,7 @@ namespace Androidzy
                             case "cores": if (int.TryParse(v, out n)) s.Cores = n; break;
                             case "ram_mb": if (int.TryParse(v, out n)) s.RamMb = n; break;
                             case "save_on_exit": s.SaveOnExit = v != "0"; break;
+                            case "debloat": s.Debloat = v != "0"; break;
                             case "sdk_license_accepted": s.LicenseAccepted = v == "1"; break;
                         }
                     }
@@ -50,7 +52,7 @@ namespace Androidzy
                 File.WriteAllLines(Paths.SettingsFile, new string[]
                 {
                     "profile=" + Profile, "resolution=" + Res, "cores=" + Cores,
-                    "ram_mb=" + RamMb, "save_on_exit=" + (SaveOnExit ? "1" : "0"),
+                    "ram_mb=" + RamMb, "save_on_exit=" + (SaveOnExit ? "1" : "0"), "debloat=" + (Debloat ? "1" : "0"),
                     "sdk_license_accepted=" + (LicenseAccepted ? "1" : "0")
                 });
             }
