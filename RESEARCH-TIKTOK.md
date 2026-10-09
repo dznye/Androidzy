@@ -1,6 +1,6 @@
 # TikTok on the Android Emulator: what lagged and what fixed it
 
-Notes from tuning Androidzy's **TikTok (smooth video)** profile (Androidzy 1.3 - 1.4). Every number below was measured, on one PC, with the tools listed at the end. Where something was not measured, it says so.
+Notes from tuning Androidzy's **TikTok (smooth video)** profile (Androidzy 1.3 - 1.5). Every number below was measured, on one PC, with the tools listed at the end. Where something was not measured, it says so.
 
 **Test PC:** Intel Core i5-11300H (4 cores / 8 threads), NVIDIA GeForce RTX 3050 Laptop + Intel Iris Xe, 16 GB RAM, Windows 11, mains power. Android 14 (API 34) Google Play x86_64 image, Android Emulator 37.x, Pixel Fold screen (2208 x 1840) unless noted.
 
@@ -12,8 +12,9 @@ Notes from tuning Androidzy's **TikTok (smooth video)** profile (Androidzy 1.3 -
 |---|---|---|---|---|
 | 1 | Videos froze or crawled after every swipe | TikTok used `c2.goldfish.hevc.decoder`; logcat full of `Ignoring stale input buffer done callback` / `MediaCodec discarded an unknown buffer`; new videos rendered 1-80 frames in 43 s | `-feature -HardwareDecoder` | **Yes** for swipe freezes |
 | 2 | Slow loading, "internet issues" | TCP round trip ~107-110 ms in the emulator vs 16 ms on the PC; ping up to 464 ms under load | `-feature -WiFiPacketStream` | **Yes**: ~24 ms, faster downloads |
-| 3 | Emulator wasted power while idle, and had no headroom when busy | Idle home screen held ~18% of the PC with Android itself at ~0% | Adaptive governor + 6 cores | **Yes** for idle power (~4-5%); smoothness effect not isolated |
-| 4 | Remaining judder and scroll jank | 17.5% of video frames one refresh late, 9.5% janky UI frames, many "slow issue draw commands" | Not fixed in the profile | **Partly open**, see below |
+| 3 | Emulator wasted power while idle, and had no headroom when busy | Idle home screen held ~18% of the PC with Android itself at ~0% | Adaptive governor + more cores | **Yes** for idle power (~4-5%); smoothness effect not isolated |
+| 4 | Remaining judder and scroll jank | 17.5% of video frames one refresh late, 9.5% janky UI frames, many "slow issue draw commands" | Pixel Fold 720p screen (fewer pixels) | **Partly open**, see below |
+| 5 | Lag that grew the longer TikTok ran | With 8 GB for the phone the PC was down to 160 MB free; Android killed apps 7 times in 5 min although it had 5.2 GB free inside | Choose memory that leaves Windows room; low memory priority when idle | **Yes** at 4 GB (1.6-1.8 GB free, 1 kill); 8 GB depends on what else is open |
 
 ## 1. Video decoder: goldfish vs software
 
@@ -46,7 +47,7 @@ Wi-Fi stays connected and validated without the streamer, so apps still see an u
 - With Android idle at ~0% CPU, the emulator process still used **~18% of the PC**: its own window redraw and graphics loop, not Android.
 - The **governor** (`src/Governor.cs`) reads Android's own CPU counters (`/proc/stat`) every 1.5 s, not the emulator process, whose baseline never drops. Busy (12% or more of Android's cores): the emulator runs at above-normal priority and Windows power throttling is explicitly off. Quiet for 20 s: below-normal priority and Windows efficiency mode (EcoQoS).
 - Measured: idle dropped to **~4-5% of the PC**, and the switch back to boost happens on the next poll after a tap or swipe. In a 91 s session of normal use it stayed in boost the whole time, with no flapping.
-- **6 cores** (capped at all-but-two of the PC's threads): cores Android is not using halt, so they cost nothing when idle. Its effect on smoothness was not measured in isolation.
+- **More cores** (tested at 6): cores Android is not using halt, so they cost nothing when idle. Its effect on smoothness was not measured in isolation. Since 1.5 profiles no longer force a core count; they suggest one (TikTok: 4) and the box decides.
 
 ## 4. What is left
 
@@ -66,6 +67,28 @@ Reading:
 - Part of the 35-66 ms bucket is normal cadence: 24/25 fps videos on a 60 Hz display show some frames for an extra refresh, on real phones too.
 - The rest, and the "slow issue draw commands", come from the graphics path: each frame TikTok's software decoder produces is uploaded through the emulator's OpenGL pipe, and composition and TikTok's UI are drawn at the screen's full resolution. All of that scales with pixels, and the Pixel Fold's inner screen is 4.1 MP per frame, about twice GPGDE's 1920 x 1080 (2.1 MP).
 - **Not measured yet:** folding the Pixel Fold switches Android to the 1104 x 1840 cover region (`wm size` reports `1104x1840`, about 2.0 MP), which should roughly halve that work. The session meant to measure it was cut short. A 1080 x 1920 portrait screen would be the equivalent without a fold.
+
+## 5. Memory: the lag that builds up
+
+After the fixes above, lag came back gradually during longer sessions. One snapshot explained it:
+
+- the phone was set to **8 GB**; the emulator process held 6 GB and growing, while Android plus TikTok actually used about 3 GB (Android reported 5.2 GB available inside),
+- the PC (16 GB) had **160 MB** free, with a browser and other apps open: Windows was paging the emulator's memory,
+- Android's low-memory killer fired **7 times in 5 minutes**, which is the host-side paging stalls showing up inside the guest as memory pressure,
+- CPU at full speed (no thermal throttling) and GPU at 61 °C, so not heat.
+
+With **4 GB** the emulator settled at 4.8 GB, the PC kept **1.6-1.8 GB free** over the next minute of TikTok, and there was 1 kill instead of 7.
+
+**Dynamic RAM is not possible** with this emulator: the guest kernel has `virtio_balloon` and `CONFIG_PAGE_REPORTING=y`, but the emulator's QEMU rejects the device option (`Property '.free-page-reporting' not found`), so memory Android frees is never returned to Windows. What the governor does instead is set the emulator's Windows **memory priority** to low while Android is idle, so under memory pressure Windows trims the idle emulator before other apps, and back to normal as soon as Android is busy. The launch log now prints how much RAM the chosen size leaves for Windows.
+
+## 6. Screen size and the Pixel Fold 720p preset
+
+The rendering work in section 4 scales with pixels, and TikTok also picks its stream resolution from the screen, so a smaller screen means less decoding (TikTok's decoder is software) as well as less drawing.
+
+- *Google Pixel Fold 720p* is 1104 x 920 at 190 dpi: exactly half of the Fold's 2208 x 1840 at 380 dpi in each direction, so the layout in dp, the hinge and the fold controls are identical, with a quarter of the pixels (1.0 MP instead of 4.1 MP). Folded it is 552 x 920. Verified: boots, renders TikTok correctly, folds and unfolds.
+- **Not properly measured yet.** The only TikTok run at a 720p-class screen (720 x 1280 portrait) was taken less than a minute after a cold boot, with TikTok at about 300% CPU doing first-start work, and was worse on every metric. It says nothing about warmed-up playback. A warmed-up run is still to do.
+
+**Bug found on the way:** switching from the Pixel Fold to any other screen left `hw.device.name=pixel_fold` in the AVD config, and the emulator then crashed at start (exit code 0xC0000005). Leaving the Fold now removes that key.
 
 ## Ruled out
 

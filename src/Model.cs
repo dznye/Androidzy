@@ -9,8 +9,10 @@ namespace Androidzy
         public string Description;
         public string EmuGpu;   // value for the emulator's -gpu switch
         public int WinPref;     // Windows per-app GPU preference: 2 = high performance, 1 = power saving, 0 = no override
-        public int MinCores, MinRamMb;   // floors applied on top of the chosen CPU / memory (0 = none)
-        public int Vsync;               // hw.lcd.vsync to write (0 = leave as is)
+        public int Vsync;               // display refresh lock, hw.lcd.vsync (0 = the default 60 Hz)
+        // Filled into the Screen / CPU / Memory boxes when the user picks this profile (0 = leave the box alone);
+        // the boxes can be changed afterwards and launch uses whatever they show.
+        public int SuggestW, SuggestH, SuggestCores, SuggestRamMb;
         public bool SoftwareVideo;      // turn off the emulator's host ("goldfish") video decoders: apps get Android's own c2.android.* decoders
         public bool DirectNetwork;      // Wi-Fi without the netsim packet streamer: ~25 ms instead of ~110 ms per round trip
         // Emulator features fixed at boot; a snapshot taken with different ones must not be resumed.
@@ -22,9 +24,6 @@ namespace Androidzy
             return f.Trim();
         }
         public bool Adaptive;           // Governor: full power while Android is busy, efficiency mode when idle
-        // the floor never takes more than all-but-two of the PC's logical processors
-        public int Cores(int chosen) { int f = Math.Min(MinCores, Math.Max(1, Environment.ProcessorCount - 2)); return chosen > f ? chosen : f; }
-        public int RamMb(int chosen) { return chosen > MinRamMb ? chosen : MinRamMb; }
         public override string ToString() { return Name; }
     }
 

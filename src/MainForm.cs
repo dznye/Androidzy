@@ -246,7 +246,18 @@ namespace Androidzy
             chkDebloat.Checked = st.Debloat;
             chkCold.Checked = cli.Cold;
             EnsureShareFolder();
-            cbProfile.SelectedIndexChanged += delegate { ShowProfileInfo(); };
+            cbProfile.SelectedIndexChanged += delegate
+            {
+                ShowProfileInfo();
+                // a task profile fills in its screen, cores and memory; every box can still be changed afterwards
+                GpuProfile p = (GpuProfile)cbProfile.SelectedItem;
+                if (!cbRes.Enabled) return;   // running: hardware cannot change until the next launch
+                int r = p.SuggestW > 0 ? Host.FindRes(p.SuggestW, p.SuggestH) : -1;
+                if (r >= 0) cbRes.SelectedIndex = r;
+                if (p.SuggestCores > 0) nudCores.Value = Math.Max(nudCores.Minimum, Math.Min(nudCores.Maximum, p.SuggestCores));
+                int m = Array.IndexOf(Host.RamChoicesMb, p.SuggestRamMb);
+                if (m >= 0) cbRam.SelectedIndex = m;
+            };
             ShowProfileInfo();
 
             FormClosing += OnClosing;
@@ -433,7 +444,7 @@ namespace Androidzy
             if (port < 0) { Error("No free emulator console port (5554-5584). Close another emulator and retry."); return; }
 
             StringBuilder a = new StringBuilder();
-            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, prof.Cores(st.Cores), prof.RamMb(st.RamMb));
+            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, st.Cores, st.RamMb);
             a.Append(" -no-boot-anim -no-metrics -netdelay none -netspeed full -accel on");
             if (st.HttpProxy.Length > 0) a.Append(" -http-proxy " + st.HttpProxy);
             if (st.Timezone.Length > 0) a.Append(" -timezone " + st.Timezone);   // cold boots start in this zone too
@@ -477,7 +488,14 @@ namespace Androidzy
             if (prof.SoftwareVideo) AppendLog("> video: Android software decoders (goldfish host decoders off)");
             if (prof.DirectNetwork) AppendLog("> network: direct Wi-Fi (netsim packet streamer off)");
             if (featsSwitched) AppendLog("> boot features changed: cold boot this time");
-            if (prof.Cores(st.Cores) != st.Cores) AppendLog("> CPU: " + prof.Cores(st.Cores) + " cores (profile minimum; idle cores cost the PC nothing)");
+            AppendLog("> display: " + res.W + " x " + res.H + ", locked at " + (prof.Vsync > 0 ? prof.Vsync : 60) + " fps");
+            long pcMb = Host.TotalRamMb();
+            if (pcMb > 0)
+            {
+                long left = pcMb - st.RamMb;
+                AppendLog("> memory: " + (st.RamMb / 1024) + " GB for the phone, about " + (left / 1024) + " GB left for Windows and your apps" +
+                          (left < 8192 ? " - if the PC runs short, video stutters; close other apps or pick less memory" : ""));
+            }
             runProfile = prof;
 
             proc = new Process();

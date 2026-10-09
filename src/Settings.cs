@@ -6,7 +6,7 @@ namespace Androidzy
     sealed partial class Settings
     {
         public string Profile = "";
-        public int Res = 1;
+        public int Res = Host.DefaultRes;
         public int Cores = Math.Max(2, Math.Min(6, Environment.ProcessorCount / 2));
         public int RamMb = 4096;
         public bool SaveOnExit = true;
@@ -53,7 +53,7 @@ namespace Androidzy
                     }
             }
             catch { }
-            if (s.Res < 0 || s.Res >= Host.Resolutions.Length) s.Res = 1;
+            if (s.Res < 0 || s.Res >= Host.Resolutions.Length) s.Res = Host.DefaultRes;
             s.Cores = Math.Max(1, Math.Min(Environment.ProcessorCount, s.Cores));
             if (Array.IndexOf(Host.RamChoicesMb, s.RamMb) < 0) s.RamMb = 4096;
             return s;

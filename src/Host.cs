@@ -17,8 +17,12 @@ namespace Androidzy
         {
             new GpuProfile { Id = "dedicated", Name = "Dedicated GPU (best performance)", EmuGpu = "host", WinPref = 2,
                 Description = "Pins the emulator's renderer to your high-performance GPU (NVIDIA / AMD) and uses its native drivers. Smoothest for scrolling, video and 3D." },
-            new GpuProfile { Id = "tiktok", Name = "TikTok (smooth video)", EmuGpu = "host", WinPref = 2, MinCores = 6, MinRamMb = 4096, Vsync = 60, SoftwareVideo = true, DirectNetwork = true, Adaptive = true,
-                Description = "Tuned for TikTok and other short-video feeds: dedicated GPU, 60 Hz, at least 6 cores / 4 GB, video decoded by Android itself, direct Wi-Fi (about 4x lower latency), and full power while Android is busy that goes back to Windows when it is idle." },
+            new GpuProfile { Id = "tiktok", Name = "TikTok (smooth video)", EmuGpu = "host", WinPref = 2, Vsync = 60, SoftwareVideo = true, DirectNetwork = true, Adaptive = true,
+                SuggestW = 1104, SuggestH = 920, SuggestCores = 4, SuggestRamMb = 8192,
+                Description = "For TikTok and other short-video feeds: dedicated GPU, locked 60 Hz, video decoded by Android itself, direct Wi-Fi (about 4x lower latency), full power while busy and handed back to Windows when idle. Suggests Pixel Fold 720p, 4 cores, 8 GB: fewer pixels means TikTok streams and decodes lighter video." },
+            new GpuProfile { Id = "everyday", Name = "Everyday apps (quiet)", EmuGpu = "host", WinPref = 1, Vsync = 30, DirectNetwork = true, Adaptive = true,
+                SuggestW = 1104, SuggestH = 920, SuggestCores = 4, SuggestRamMb = 4096,
+                Description = "For chat, email, browsing and other normal apps: power-saving GPU, display locked at 30 fps, direct Wi-Fi, and Windows efficiency mode whenever Android is idle. Suggests Pixel Fold 720p, 4 cores, 4 GB. Cool and quiet; not for video feeds or games." },
             new GpuProfile { Id = "integrated", Name = "Integrated GPU (battery saver)", EmuGpu = "host", WinPref = 1,
                 Description = "Pins the renderer to the power-saving GPU (usually Intel). Cooler, quieter and easy on the battery: a good fit for an always-on second device." },
             new GpuProfile { Id = "auto", Name = "Windows default", EmuGpu = "host", WinPref = 0,
@@ -33,8 +37,34 @@ namespace Androidzy
             new Res { Name = "1920 x 1080  landscape (recommended)", W = 1920, H = 1080, Dpi = 240 },
             new Res { Name = "2560 x 1440  landscape (sharp)",       W = 2560, H = 1440, Dpi = 320 },
             new Res { Name = "1080 x 2400  phone portrait",          W = 1080, H = 2400, Dpi = 420 },
-            new Res { Name = "Google Pixel Fold  (foldable, shows fold controls)", W = 2208, H = 1840, Dpi = 380, Fold = true }
+            new Res { Name = "Google Pixel Fold  (foldable, shows fold controls)", W = 2208, H = 1840, Dpi = 380, Fold = true },
+            // added later: kept at the end so saved screen choices (stored by position) still point at the same entry
+            // Pixel Fold at half the pixels and half the density: the same layout in dp, a quarter of the drawing work
+            new Res { Name = "Google Pixel Fold 720p  (1104 x 920, light, fold controls)", W = 1104, H = 920, Dpi = 190, Fold = true },
+            new Res { Name = "720 x 1280  portrait (light, smooth)",  W = 720,  H = 1280, Dpi = 320 },
+            new Res { Name = "1080 x 1920  portrait (TikTok native)", W = 1080, H = 1920, Dpi = 420 }
         };
+
+        public static int DefaultRes { get { return FindRes(2208, 1840); } }   // Google Pixel Fold
+
+        // Physical memory of this PC in MB (0 if Windows will not say).
+        public static long TotalRamMb()
+        {
+            try
+            {
+                using (ManagementObjectSearcher q = new ManagementObjectSearcher("SELECT TotalPhysicalMemory FROM Win32_ComputerSystem"))
+                    foreach (ManagementObject o in q.Get()) return Convert.ToInt64(o["TotalPhysicalMemory"]) / (1024 * 1024);
+            }
+            catch { }
+            return 0;
+        }
+
+        // Position of the screen with these pixels, or -1.
+        public static int FindRes(int w, int h)
+        {
+            for (int i = 0; i < Resolutions.Length; i++) if (Resolutions[i].W == w && Resolutions[i].H == h) return i;
+            return -1;
+        }
 
         public static readonly int[] RamChoicesMb = { 2048, 3072, 4096, 6144, 8192 };
 
@@ -175,6 +205,8 @@ namespace Androidzy
             RemoveKeys(lines, "hw.sensor.hinge");
             RemoveKeys(lines, "hw.sensor.posture_list");
             RemoveKeys(lines, "hw.displayRegion");
+            // left behind, the pixel_fold device definition crashes the emulator at start with a non-fold screen
+            RemoveKeys(lines, "hw.device.name");
         }
 
         // Creates the virtual device on first use, then applies the per-run hardware settings.
@@ -193,9 +225,9 @@ namespace Androidzy
             SetKey(lines, "hw.lcd.height", r.H.ToString());
             SetKey(lines, "hw.lcd.density", r.Dpi.ToString());
             SetKey(lines, "hw.initialOrientation", r.W >= r.H ? "landscape" : "portrait");
-            SetKey(lines, "hw.cpu.ncore", p.Cores(s.Cores).ToString());
-            SetKey(lines, "hw.ramSize", p.RamMb(s.RamMb).ToString());
-            if (p.Vsync > 0) SetKey(lines, "hw.lcd.vsync", p.Vsync.ToString());
+            SetKey(lines, "hw.cpu.ncore", s.Cores.ToString());
+            SetKey(lines, "hw.ramSize", s.RamMb.ToString());
+            SetKey(lines, "hw.lcd.vsync", (p.Vsync > 0 ? p.Vsync : 60).ToString());   // a 30 fps lock must not outlive its profile
             SetKey(lines, "hw.gpu.enabled", "yes");
             SetKey(lines, "hw.gpu.mode", p.EmuGpu);
             if (r.Fold) ApplyFold(lines, r); else RemoveFold(lines);
