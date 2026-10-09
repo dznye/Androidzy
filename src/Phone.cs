@@ -83,6 +83,15 @@ namespace Androidzy
             return "background Wi-Fi/Bluetooth scanning off, network location off, error reporting off";
         }
 
+        // The name shown in Settings > About phone > Device name, Bluetooth and the hotspot. Cosmetic only: the
+        // build's model/fingerprint strings are not touched.
+        public static string SetDeviceName(string serial, string name)
+        {
+            Adb(serial, "shell settings put global device_name " + Sh(name), 10000);
+            Adb(serial, "shell settings put secure bluetooth_name " + Sh(name), 10000);
+            return name;
+        }
+
         // Removes every app with a launcher icon except the ones in Keep, for the current user only.
         // Reversible: "cmd package install-existing <package>" or simply install it again from Google Play.
         public static int Debloat(string serial, Action<string> log)

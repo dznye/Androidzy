@@ -32,7 +32,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 - **GPU profiles** - Dedicated, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
 - **Fast restarts** - quick-boot snapshots bring Android back in about a second.
 - **Zero setup** - uses the Android SDK you already have from Android Studio, or downloads what it needs from Google on first run.
-- **One small exe** - a single native Windows program (about 60 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
+- **One small exe** - a single native Windows program (about 76 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
 - Resolution presets, CPU/memory settings, cold boot, factory reset, per-launch logs.
 
 ## Requirements

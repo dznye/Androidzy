@@ -487,7 +487,8 @@ namespace Androidzy
             booted = true;
             SetStatus("Running  -  emulator-" + port + (gpuInUse.Length > 0 ? "  -  GPU: " + gpuInUse : ""));
             int p = port; bool deb = chkDebloat.Checked;
-            Thread t = new Thread(delegate() { PostBoot(p, deb); });
+            bool fold = cbRes.SelectedIndex >= 0 && Host.Resolutions[cbRes.SelectedIndex].Fold;
+            Thread t = new Thread(delegate() { PostBoot(p, deb, fold); });
             t.IsBackground = true;
             t.Start();
         }
@@ -508,7 +509,7 @@ namespace Androidzy
         }
 
         // Runs on every boot, in the background, once Android is up.
-        void PostBoot(int consolePort, bool removeApps)
+        void PostBoot(int consolePort, bool removeApps, bool isFold)
         {
             string serial = "emulator-" + consolePort;
             Action<string> say = delegate(string m) { PostToUi(() => AppendLog(m)); };
@@ -518,6 +519,8 @@ namespace Androidzy
 
                 say(Phone.SetUsLocation(serial) ? "> location set to the US (New York)" : "> could not set the location");
                 say("> privacy settings applied: " + Phone.HardenPrivacy(serial));
+                say("> device name: " + Phone.SetDeviceName(serial, isFold ? "Pixel Fold" : "Androidzy"));
+                if (isFold) { Phone.Adb(serial, "shell cmd device_state state 2", 10000); say("> Pixel Fold unfolded"); }   // 2 = OPENED
 
                 if (removeApps && !File.Exists(Paths.DebloatFlag))
                 {

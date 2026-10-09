@@ -5,5 +5,5 @@ using System.Reflection;
 [assembly: AssemblyCompany("@dznye")]
 [assembly: AssemblyDescription("Androidzy by @dznye - Android emulator launcher with GPU profiles")]
 [assembly: AssemblyCopyright("Androidzy by @dznye - MIT License")]
-[assembly: AssemblyVersion("1.2.1.0")]
-[assembly: AssemblyFileVersion("1.2.1.0")]
+[assembly: AssemblyVersion("1.2.2.0")]
+[assembly: AssemblyFileVersion("1.2.2.0")]
