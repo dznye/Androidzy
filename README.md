@@ -1,6 +1,6 @@
 # Android emulator for apps: a BlueStacks, MEmu & LDPlayer alternative (Androidzy)
 
-**Androidzy by [@dznye](https://github.com/dznye)** - a free, open-source Android emulator for Windows PC, built for running **apps** (not games). A simpler alternative to BlueStacks, LDPlayer, MEmu and MuMu Player if all you want is Android apps on your desktop: a second Android device with real Google Play, the official Google emulator and one-click GPU profiles. *Androidzy is the name of the app you install.*
+**Androidzy by [@dznye](https://github.com/dznye)** - a free, open-source Android emulator for Windows PC, built for running **apps** (not games). A simpler alternative to BlueStacks, LDPlayer, MEmu and MuMu Player if all you want is Android apps on your desktop: a second Android device with real Google Play, the official Google emulator and one-click GPU profiles.
 
 Website: **https://dznye.github.io/Androidzy/**
 

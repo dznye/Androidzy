@@ -62,47 +62,47 @@
     {
       "@type": "Question",
       "name": "What is the best BlueStacks, MEmu or LDPlayer alternative for running apps?",
-      "acceptedAnswer": { "@type": "Answer", "text": "If you mostly run everyday apps rather than games, Androidzy is a simpler alternative. It launches Google's official Android emulator with Google Play and Android 14 on Windows, with no keymapping, macros or game store in the way. If you need keymapping, macros or several instances at once, BlueStacks, LDPlayer, MEmu or MuMu Player fit better." }
+      "acceptedAnswer": { "@type": "Answer", "text": "If you mostly run everyday apps rather than games, try Androidzy. It runs Google's official Android emulator with Google Play and Android 14 on Windows, with no keymapping, macros or game store in the way. If you need keymapping, macros or several instances at once, BlueStacks, LDPlayer, MEmu or MuMu Player fit better." }
     },
     {
       "@type": "Question",
       "name": "Is there an Android emulator for PC that is made for apps, not games?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Androidzy is. It runs the official Google Android Emulator with Google Play on Windows, but it is set up for everyday apps: a clean Android 14 device that starts in seconds, stays signed in, and has no keymapping, macros or game store in the way." }
-    },
-    {
-      "@type": "Question",
-      "name": "What is Androidzy?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Androidzy is the name of the app. It is a free, open-source launcher for Google's official Android Emulator, set up for running apps on Windows. That is the name you will see on the download and in the app window." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Androidzy runs the official Google Android Emulator with Google Play on Windows and is set up for everyday apps: a clean Android 14 device that starts in seconds, stays signed in, and has no game tooling in the way." }
     },
     {
       "@type": "Question",
       "name": "How do I run Android apps on Windows 11 now that Windows Subsystem for Android is gone?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Microsoft ended support for Windows Subsystem for Android on March 5, 2025. Phone Link can mirror a supported phone and Google Play Games on PC covers games. For general apps you need an emulator: install Androidzy, accept Google's license on first run, sign in to Google Play and install your apps." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Microsoft ended support for Windows Subsystem for Android on March 5, 2025. Phone Link can mirror a supported phone and Google Play Games on PC covers games. For general apps you need an emulator: download Androidzy, accept Google's license on first run, sign in to Google Play and install your apps." }
     },
     {
       "@type": "Question",
-      "name": "Can I use it as a second phone to keep work and personal accounts apart?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Yes. Androidzy gives you a separate Android 14 device on your PC with its own Google account, apps and data, so work chat, email and social accounts stay apart from your personal phone. Use it for accounts you own or are authorised to manage." }
+      "name": "Can I use it as a second phone for work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. It gives you a separate Android 14 device on your PC with its own Google account, apps and data, so work chat, email and social accounts stay apart from your personal phone." }
     },
     {
       "@type": "Question",
-      "name": "Can I sign in to multiple accounts or run multiple instances?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Within each app's own limits, yes. Instagram lets you add up to five accounts and Telegram supports several, and Android lets you add multiple Google accounts. Some services, such as WhatsApp, tie an account to a phone number, so a second account needs its own number. Androidzy currently runs one Android device at a time. Running several side by side is not supported yet." }
+      "name": "Can I use multiple accounts?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes, within each app's own limits. Instagram lets you add up to five accounts and Telegram supports several, and Android lets you add multiple Google accounts. Some services, such as WhatsApp, tie an account to a phone number, so a second account needs its own number. Use it for accounts you own or are authorised to manage." }
+    },
+    {
+      "@type": "Question",
+      "name": "Does it have keymapping or multiple instances like BlueStacks?",
+      "acceptedAnswer": { "@type": "Answer", "text": "No. Androidzy runs one clean Android device and leaves out game tooling on purpose. If you need keymapping, macros or several instances side by side, a gaming emulator such as BlueStacks, LDPlayer, MEmu or MuMu Player is the better choice." }
     },
     {
       "@type": "Question",
       "name": "Does it include Google Play?",
-      "acceptedAnswer": { "@type": "Answer", "text": "It uses Google's official Android 14 system image with Google Play. Nothing from Google is bundled with Androidzy. On first run it downloads the emulator and image from Google's servers (about 2 GB) after you accept Google's license, or it reuses an Android Studio SDK you already have." }
+      "acceptedAnswer": { "@type": "Answer", "text": "Yes. It uses Google's official Android 14 system image with Google Play. On first run it downloads the emulator and image from Google (about 2 GB) after you accept Google's license, or it reuses an Android Studio SDK you already have." }
     },
     {
       "@type": "Question",
-      "name": "Will banking and streaming apps work in an emulator?",
-      "acceptedAnswer": { "@type": "Answer", "text": "Some may not. Banking, payment and DRM-protected streaming apps often check that they run on a certified physical phone and may block or limit any emulator. Androidzy does not try to hide that it is an emulator, so use a real phone for apps that require one." }
+      "name": "Will banking and streaming apps work?",
+      "acceptedAnswer": { "@type": "Answer", "text": "Some may not. Banking, payment and DRM-protected streaming apps often check that they run on a certified physical phone and may block any emulator. Use a real phone for apps that require one." }
     },
     {
       "@type": "Question",
       "name": "Is it free and safe?",
-      "acceptedAnswer": { "@type": "Answer", "text": "It is free. The launcher is open source under the MIT license, so you can read exactly what it does, and emulator usage metrics are switched off. The download is not code-signed yet, so Windows SmartScreen may show a warning. You can also build it yourself from source." }
+      "acceptedAnswer": { "@type": "Answer", "text": "It is free, with no ads. The launcher is open source under the MIT license, so you can read exactly what it does, and emulator usage metrics are switched off. The download is not code-signed yet, so Windows SmartScreen may ask you to confirm: choose More info, then Run anyway." }
     },
     {
       "@type": "Question",
@@ -117,7 +117,6 @@
 :root{
   --bg:#f7faf8; --surface:#ffffff; --text:#0f1b17; --muted:#4d5f57; --line:#dde7e2;
   --accent:#0a7a55; --accent-hover:#086645; --on-accent:#ffffff; --soft:#e5f5ed; --soft-text:#075a3f;
-  --warn-bg:#fff6e0; --warn-line:#f0d28a; --warn-text:#5a4300;
   --shadow:0 1px 2px rgba(15,27,23,.06),0 10px 30px rgba(15,27,23,.08);
   --radius:16px;
 }
@@ -125,7 +124,6 @@
   :root{
     --bg:#08110e; --surface:#0f1b16; --text:#e8f1ed; --muted:#9bb0a6; --line:#1f322a;
     --accent:#2ee6a0; --accent-hover:#5af0b6; --on-accent:#03140c; --soft:#10281e; --soft-text:#7df0c1;
-    --warn-bg:#241d08; --warn-line:#5b4a14; --warn-text:#f1d98a;
     --shadow:0 1px 2px rgba(0,0,0,.4),0 10px 30px rgba(0,0,0,.35);
   }
 }
@@ -162,13 +160,13 @@ nav a.btn-sm:hover{background:var(--accent-hover);color:var(--on-accent)}
 h1{font-size:clamp(1.9rem,4vw,3rem);line-height:1.12;letter-spacing:-.02em;margin:0 0 18px}
 h1 em{font-style:normal;color:var(--accent)}
 .lead{font-size:1.12rem;color:var(--muted);margin:0 0 26px;max-width:36em}
-.cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:22px}
+.cta{display:flex;flex-wrap:wrap;gap:12px;margin-bottom:14px}
 .btn{display:inline-flex;align-items:center;gap:8px;padding:13px 22px;border-radius:12px;font-weight:650;text-decoration:none;border:1px solid transparent;font-size:1rem}
 .btn.primary{background:var(--accent);color:var(--on-accent)}
 .btn.primary:hover{background:var(--accent-hover);color:var(--on-accent)}
 .btn.ghost{border-color:var(--line);color:var(--text);background:var(--surface)}
 .btn.ghost:hover{border-color:var(--accent);color:var(--text)}
-.dlnote{margin:-8px 0 20px;color:var(--muted);font-size:.88rem}
+.dlnote{margin:0 0 20px;color:var(--muted);font-size:.88rem}
 .chips{list-style:none;padding:0;margin:0;display:flex;flex-wrap:wrap;gap:8px 18px;color:var(--muted);font-size:.92rem}
 .chips li::before{content:"\2713";color:var(--accent);font-weight:700;margin-right:6px}
 .shot{justify-self:center;border-radius:14px;box-shadow:var(--shadow);border:1px solid var(--line);max-width:420px;width:100%;background:var(--surface)}
@@ -185,10 +183,8 @@ section.alt .card{background:var(--bg)}
 .card h3{margin:0 0 8px;font-size:1.1rem}
 .card p{margin:0;color:var(--muted)}
 .icon{width:42px;height:42px;border-radius:12px;background:var(--soft);color:var(--soft-text);display:grid;place-items:center;margin-bottom:14px;font-size:1.25rem}
-.notice{margin-top:26px;background:var(--warn-bg);border:1px solid var(--warn-line);color:var(--warn-text);border-radius:var(--radius);padding:18px 22px}
-.notice strong{display:block;margin-bottom:4px}
-.notice p{margin:0}
-.fair{margin-top:22px;color:var(--muted)}
+.fine{margin:22px 0 0;color:var(--muted);font-size:.9rem}
+.pick{margin:22px 0 0;font-size:1.05rem}
 
 /* steps */
 ol.steps{list-style:none;margin:0 0 30px;padding:0;display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:18px;counter-reset:s}
@@ -209,8 +205,6 @@ thead th{background:var(--soft);color:var(--soft-text);font-weight:650}
 tbody tr:last-child td,tbody tr:last-child th{border-bottom:0}
 tbody th{font-weight:650;white-space:nowrap}
 tr.me{background:color-mix(in srgb,var(--accent) 9%,transparent)}
-.notyet{margin-top:22px;color:var(--muted)}
-.notyet ul{margin:8px 0 0;padding-left:20px}
 
 /* faq */
 details{background:var(--surface);border:1px solid var(--line);border-radius:14px;margin-bottom:12px;padding:0 20px}
@@ -221,7 +215,12 @@ summary::after{content:"+";position:absolute;right:0;top:50%;transform:translate
 details[open] summary::after{content:"\2212"}
 details p{margin:0 0 18px;color:var(--muted)}
 
-footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--muted);font-size:.92rem}
+/* final call to action */
+.final{text-align:center}
+.final .sub{margin-left:auto;margin-right:auto}
+.final .cta{justify-content:center}
+
+footer{padding:40px 0 56px;border-top:1px solid var(--line);color:var(--muted);font-size:.9rem}
 footer .row{display:flex;flex-wrap:wrap;gap:12px 28px;justify-content:space-between;align-items:flex-start}
 footer a{color:var(--muted)}
 footer a:hover{color:var(--accent)}
@@ -238,7 +237,7 @@ footer p{margin:6px 0 0;max-width:46em}
       <span>Android Emulator<span class="wide"> for Apps</span></span>
     </a>
     <nav aria-label="Primary">
-      <a href="#why-alternative">Alternative to</a>
+      <a href="#why-alternative">Why switch</a>
       <a href="#use-cases">Use cases</a>
       <a href="#how-it-works">How it works</a>
       <a href="#compare">Compare</a>
@@ -255,79 +254,75 @@ footer p{margin:6px 0 0;max-width:46em}
     <div>
       <p class="eyebrow">Free Android emulator for Windows PC</p>
       <h1 id="top">Android emulator for apps: the <em>BlueStacks, MEmu &amp; LDPlayer alternative</em></h1>
-      <p class="lead">Built for apps, not games. Run a clean Android 14 device with Google Play on your Windows desktop, as a second phone for work chat, email and the accounts you manage. The app you install is called Androidzy.</p>
+      <p class="lead">Run your Android apps on a big screen, without the game clutter. Android 14 and Google Play on your Windows PC: a second phone for work chat, email and the accounts you manage, back in seconds every time you open it.</p>
       <div class="cta">
         <a class="btn primary" href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Download for Windows &mdash; free</a>
         <a class="btn ghost" href="#how-it-works">See how it works</a>
       </div>
-      <p class="dlnote">v1.0.0 &middot; Windows 10 &amp; 11 &middot; 62 KB &middot; <a href="https://github.com/dznye/Androidzy/releases/latest">release notes &amp; checksum</a></p>
+      <p class="dlnote">v1.0.0 &middot; Windows 10 &amp; 11 &middot; 62 KB &middot; <a href="https://github.com/dznye/Androidzy/releases/latest">release notes &amp; checksum</a><br>If Windows SmartScreen appears on first run, choose <strong>More info</strong>, then <strong>Run anyway</strong>.</p>
       <ul class="chips">
-        <li>Free &amp; open source (MIT)</li>
-        <li>Official Google emulator</li>
+        <li>Free &amp; open source</li>
         <li>Google Play included</li>
-        <li>No ads in the launcher</li>
+        <li>No ads</li>
+        <li>Official Google emulator</li>
       </ul>
     </div>
-    <img class="shot" src="screenshot.png" width="636" height="779" alt="Androidzy, an Android emulator for PC, showing GPU profile, resolution, CPU and memory settings and a Launch button">
+    <img class="shot" src="screenshot.png" width="636" height="779" alt="The emulator window: pick a graphics profile, window size, CPU and memory, then press Launch">
   </div>
 </section>
 
 <section id="why-alternative" class="alt" aria-labelledby="wa-h">
   <div class="wrap">
-    <h2 id="wa-h">Looking for a BlueStacks, MEmu or LDPlayer alternative for apps?</h2>
-    <p class="sub">BlueStacks, LDPlayer, MEmu and MuMu Player are very good at games. If you mostly run everyday apps, you are carrying features you never use.</p>
+    <h2 id="wa-h">Skip the gaming features. Keep the apps.</h2>
+    <p class="sub">BlueStacks, LDPlayer, MEmu and MuMu Player are built for games. If you just want your apps on a PC, you don't need keymapping, macros or a game store.</p>
     <div class="grid">
-      <article class="card"><h3>Built around games</h3><p>Gaming emulators are designed around keymapping, macros, controller support and many simultaneous instances. For apps like chat, email and social accounts you rarely need any of it.</p></article>
-      <article class="card"><h3>Google's own emulator</h3><p>Androidzy launches the same emulator Android Studio uses, running Android 14 with Google Play. Nothing is layered on top: no custom store, no bundled extras.</p></article>
-      <article class="card"><h3>Free and open</h3><p>Some gaming emulators have ad-supported free tiers or paid plans. The Androidzy launcher is free, open source (MIT) and has no ads.</p></article>
+      <article class="card"><h3>Made for apps</h3><p>A clean Android 14 home screen with Google Play. Nothing to switch off and nothing to uninstall.</p></article>
+      <article class="card"><h3>Google's own emulator</h3><p>It runs on the same emulator Google ships to Android developers, with Android 14 and Google Play.</p></article>
+      <article class="card"><h3>Free, open source, no ads</h3><p>No ads, no sign-up, no bundled offers. The source is on GitHub if you want to check.</p></article>
     </div>
-    <p class="fair"><strong>Be honest about the trade-off:</strong> if you need keymapping, macros or several Android instances running at once, BlueStacks, LDPlayer, MEmu or MuMu Player are the better fit. Androidzy runs one clean device, on purpose.</p>
   </div>
 </section>
 
 <section id="use-cases" aria-labelledby="uc-h">
   <div class="wrap">
-    <h2 id="uc-h">Run Android apps on your PC, as a second device</h2>
-    <p class="sub">An Android emulator for everything you do on a phone besides games, on the computer you already sit at all day.</p>
+    <h2 id="uc-h">Everything you do on your phone, on your PC</h2>
+    <p class="sub">Keep the apps you rely on one window away, on the computer you already sit at all day.</p>
     <div class="grid">
-      <article class="card"><div class="icon" aria-hidden="true">&#128188;</div><h3>A second phone for work</h3><p>Keep Slack, Teams, Gmail or Telegram on your PC, separate from your personal phone. Close the window and work is off.</p></article>
-      <article class="card"><div class="icon" aria-hidden="true">&#128101;</div><h3>Accounts you own or manage</h3><p>Sign in to as many accounts as each app allows. Instagram, for example, lets you add up to five on one device. Handy for creators, small businesses and social media managers.</p></article>
-      <article class="card"><div class="icon" aria-hidden="true">&#128421;</div><h3>Mobile-only apps, big screen</h3><p>Some apps and features only exist on Android. Run them with your keyboard and mouse in a 1080p window, and take screenshots or recordings without leaving your desk.</p></article>
-      <article class="card"><div class="icon" aria-hidden="true">&#128295;</div><h3>Test apps on real Android 14</h3><p>Developers and QA get Google's official emulator and adb without installing Android Studio. Install an APK, test, reset.</p></article>
-      <article class="card"><div class="icon" aria-hidden="true">&#129514;</div><h3>Try apps away from your phone</h3><p>Install unfamiliar apps on a separate device first, and reset it with one click (Wipe all data) when you are done.</p></article>
-      <article class="card"><div class="icon" aria-hidden="true">&#127811;</div><h3>Quiet, always-on running</h3><p>The Integrated GPU profile uses the power-saving graphics chip, so the emulator runs cooler and quieter than on the dedicated card. A good fit for a device you leave open all day.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128188;</div><h3>A second phone for work</h3><p>Keep Slack, Teams, Gmail and Telegram on your PC, apart from your personal phone. Close the window and you are off the clock.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128101;</div><h3>All your accounts</h3><p>Sign in to as many accounts as each app lets you. Instagram supports up to five on one device. Ideal for creators, small businesses and social media managers.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128421;</div><h3>Mobile-only apps, big screen</h3><p>Use apps that never got a desktop version, with your keyboard and mouse in a full HD window. Capture screenshots and recordings right on your desktop.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#128295;</div><h3>Test on real Android 14</h3><p>Developers and QA get Google's official emulator plus adb, without installing Android Studio.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#129514;</div><h3>Try apps safely</h3><p>Try an unfamiliar app on a separate device first. Reset the whole thing with one click when you are done.</p></article>
+      <article class="card"><div class="icon" aria-hidden="true">&#127811;</div><h3>Cool and quiet</h3><p>Switch to the Integrated GPU profile and the emulator runs on your power-saving graphics chip: cooler, quieter and easier on the battery.</p></article>
     </div>
-    <div class="notice" role="note">
-      <strong>Use it responsibly</strong>
-      <p>Use it for accounts you own or are authorised to manage. It does not hide that it is an emulator and it is not a tool for getting around platform rules. Some apps, including many banking apps and DRM-protected streaming apps, check for a certified physical phone and may block any emulator.</p>
-    </div>
+    <p class="fine">Made for accounts you own or manage. Some apps, such as banking apps, don't run on emulators.</p>
   </div>
 </section>
 
 <section id="features" class="alt" aria-labelledby="f-h">
   <div class="wrap">
-    <h2 id="f-h">Why this Android emulator suits everyday apps</h2>
-    <p class="sub">Small, quiet and out of your way. Androidzy launches Google's own emulator with sensible settings and nothing else.</p>
+    <h2 id="f-h">Small, quick to start, easy to live with</h2>
+    <p class="sub">No bloat. It opens Google's emulator with sensible settings and gets out of your way.</p>
     <div class="grid">
-      <article class="card"><h3>The official Google emulator</h3><p>The same emulator Android Studio uses, running Android 14 with Google Play. No third-party Android fork, no bundled store.</p></article>
-      <article class="card"><h3>GPU profiles that stick</h3><p>Laptops with two graphics chips often render on the wrong one. Choose Dedicated, Integrated, Windows default or Software and Androidzy pins OpenGL and Vulkan to the same GPU. The status line shows which one is in use.</p></article>
-      <article class="card"><h3>Back in seconds</h3><p>Quick-boot snapshots restore your device, signed in and where you left it. On our test PC the snapshot restores in about a second.</p></article>
-      <article class="card"><h3>Zero setup</h3><p>Reuses the Android SDK you already have, or downloads the emulator and Android 14 image from Google on first run (about 2 GB) after you accept Google's license.</p></article>
-      <article class="card"><h3>Tiny and open</h3><p>One 62 KB executable, MIT-licensed source, emulator usage metrics switched off. Read every line on GitHub.</p></article>
-      <article class="card"><h3>Only the controls you need</h3><p>Resolution presets, CPU and memory, cold boot, factory reset and logs. No keymapping, macros or game store in the way.</p></article>
+      <article class="card"><h3>Official Google emulator</h3><p>The emulator Android Studio uses, running Android 14 with Google Play. No custom Android, no bundled store.</p></article>
+      <article class="card"><h3>The right GPU, every time</h3><p>On laptops with two graphics chips, pick Dedicated or Integrated and the emulator uses it for everything. The status bar shows which GPU is in use.</p></article>
+      <article class="card"><h3>Back in seconds</h3><p>Close it and pick up exactly where you left off. On our test PC it restores in about a second.</p></article>
+      <article class="card"><h3>Nothing to set up</h3><p>Already have Android Studio? It reuses that. Otherwise it downloads what it needs from Google on first run (about 2 GB).</p></article>
+      <article class="card"><h3>62 KB and open source</h3><p>One tiny executable under the MIT license, with emulator usage metrics switched off. Read every line on GitHub.</p></article>
+      <article class="card"><h3>The settings that matter</h3><p>Window size, CPU, memory, reset and logs. That is all.</p></article>
     </div>
   </div>
 </section>
 
 <section id="how-it-works" aria-labelledby="h-h">
   <div class="wrap">
-    <h2 id="h-h">How to run Android apps on Windows 10 and 11</h2>
-    <p class="sub">Four steps from download to your first app.</p>
+    <h2 id="h-h">Get your apps on Windows in four steps</h2>
+    <p class="sub">From download to your first app in a few minutes.</p>
     <ol class="steps">
-      <li><h3>Get the app</h3><p>Download the single small <a href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Androidzy.exe</a>, or build it yourself with one script. Windows may show a SmartScreen warning because it is not code-signed yet.</p></li>
-      <li><h3>First-run setup</h3><p>Accept Google's license and it fetches the emulator and Android 14 image (about 2 GB), or it reuses your Android Studio SDK.</p></li>
-      <li><h3>Press Launch</h3><p>Pick a GPU profile and a window size, then launch. Android boots in a normal window.</p></li>
-      <li><h3>Sign in and install</h3><p>Open Google Play, sign in and install your apps. Quick-boot keeps them ready for next time.</p></li>
+      <li><h3>Download</h3><p>Grab the 62 KB <a href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Androidzy.exe</a> and run it. There is no installer.</p></li>
+      <li><h3>First-time setup</h3><p>Accept Google's license and it downloads the emulator and Android 14 (about 2 GB). Already have Android Studio? It reuses that.</p></li>
+      <li><h3>Press Launch</h3><p>Choose a graphics profile and a window size. Android opens in its own window.</p></li>
+      <li><h3>Sign in and install</h3><p>Open Google Play, sign in and install your apps. Next time it opens in seconds.</p></li>
     </ol>
     <div class="req">
       <h3>What you need</h3>
@@ -344,76 +339,79 @@ footer p{margin:6px 0 0;max-width:46em}
 
 <section class="alt" aria-labelledby="wsa-h">
   <div class="wrap">
-    <h2 id="wsa-h">Windows Subsystem for Android is gone. What now?</h2>
-    <p class="sub" style="margin-bottom:0">Microsoft ended support for Windows Subsystem for Android on March 5, 2025, which removed the built-in way to run Android apps on Windows 11. Phone Link can mirror a supported phone and Google Play Games on PC covers games. If you want general apps with Google Play on your PC, you need an emulator, either a gaming one like BlueStacks, LDPlayer, MEmu or MuMu Player, or this one, which is built for apps.</p>
+    <h2 id="wsa-h">Windows Subsystem for Android is gone. Your apps don't have to be.</h2>
+    <p class="sub" style="margin-bottom:0">Microsoft ended support for it on March 5, 2025, so Windows 11 no longer runs Android apps on its own. Phone Link only mirrors a supported phone, and Google Play Games on PC is for games. For everything else you need an emulator, and this one is built for exactly that.</p>
   </div>
 </section>
 
 <section id="compare" aria-labelledby="c-h">
   <div class="wrap">
-    <h2 id="c-h">BlueStacks vs LDPlayer vs MEmu vs MuMu Player: which Android emulator for apps?</h2>
-    <p class="sub">They overlap a lot. Pick the tool that matches what you actually do.</p>
+    <h2 id="c-h">BlueStacks vs LDPlayer vs MEmu vs MuMu Player: which is best for apps?</h2>
+    <p class="sub">A quick side-by-side of the ways to run Android apps on a PC.</p>
     <div class="table-wrap">
       <table>
-        <thead><tr><th scope="col">Option</th><th scope="col">Best for</th><th scope="col">Google Play</th><th scope="col">Cost</th><th scope="col">Several devices at once</th></tr></thead>
+        <thead><tr><th scope="col">Option</th><th scope="col">Best for</th><th scope="col">Google Play</th><th scope="col">Price</th><th scope="col">Multiple instances</th></tr></thead>
         <tbody>
-          <tr class="me"><th scope="row">Androidzy</th><td>Everyday apps on a second device</td><td>Yes</td><td>Free, open-source launcher</td><td>Not yet</td></tr>
-          <tr><th scope="row">BlueStacks</th><td>Games first: keymapping, macros</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
-          <tr><th scope="row">LDPlayer</th><td>Games first: keymapping, controllers</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
-          <tr><th scope="row">MEmu</th><td>Games first: keymapping, multi-instance</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
-          <tr><th scope="row">MuMu Player</th><td>Games first, aimed at lower-spec PCs</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
+          <tr class="me"><th scope="row">This emulator</th><td>Everyday apps on a second device</td><td>Yes</td><td>Free, open source, no ads</td><td>One device</td></tr>
+          <tr><th scope="row">BlueStacks</th><td>Games: keymapping, macros</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
+          <tr><th scope="row">LDPlayer</th><td>Games: keymapping, controllers</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
+          <tr><th scope="row">MEmu</th><td>Games: keymapping, multi-instance</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
+          <tr><th scope="row">MuMu Player</th><td>Games, aimed at lower-spec PCs</td><td>Yes</td><td>Free tier; ads or paid plans may apply</td><td>Yes</td></tr>
           <tr><th scope="row">Android Studio emulator</th><td>App developers</td><td>Yes, with Play images</td><td>Free, needs the full IDE</td><td>Yes</td></tr>
           <tr><th scope="row">Phone Link</th><td>Mirroring your own phone</td><td>Uses your phone's apps</td><td>Free</td><td>No</td></tr>
           <tr><th scope="row">Windows Subsystem for Android</th><td>Discontinued</td><td>&mdash;</td><td>&mdash;</td><td>&mdash;</td></tr>
         </tbody>
       </table>
     </div>
-    <div class="notyet">
-      <strong>What Androidzy does not do (yet)</strong>
-      <ul>
-        <li>Run several Android devices side by side.</li>
-        <li>Keymapping, macros or gamepad mapping for games.</li>
-        <li>Run on macOS or Linux. It is Windows 64-bit only.</li>
-        <li>Ship a code-signed installer, so Windows SmartScreen may warn you.</li>
-      </ul>
-    </div>
+    <p class="pick"><strong>Just want your apps?</strong> <a href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Download it free</a>. Need keymapping or several instances at once? Go with a gaming emulator.</p>
   </div>
 </section>
 
 <section id="faq" class="alt" aria-labelledby="q-h">
   <div class="wrap">
     <h2 id="q-h">Frequently asked questions</h2>
-    <p class="sub">Straight answers, including the limits.</p>
+    <p class="sub">Quick answers before you download.</p>
 
     <details><summary>What is the best BlueStacks, MEmu or LDPlayer alternative for running apps?</summary>
-      <p>If you mostly run everyday apps rather than games, Androidzy is a simpler alternative. It launches Google's official Android emulator with Google Play and Android 14 on Windows, with no keymapping, macros or game store in the way. If you need keymapping, macros or several instances at once, BlueStacks, LDPlayer, MEmu or MuMu Player fit better.</p></details>
+      <p>If you mostly run everyday apps rather than games, try Androidzy. It runs Google's official Android emulator with Google Play and Android 14 on Windows, with no keymapping, macros or game store in the way. If you need keymapping, macros or several instances at once, BlueStacks, LDPlayer, MEmu or MuMu Player fit better.</p></details>
 
     <details><summary>Is there an Android emulator for PC that is made for apps, not games?</summary>
-      <p>Androidzy is. It runs the official Google Android Emulator with Google Play on Windows, but it is set up for everyday apps: a clean Android 14 device that starts in seconds, stays signed in, and has no keymapping, macros or game store in the way.</p></details>
-
-    <details><summary>What is Androidzy?</summary>
-      <p>Androidzy is the name of the app. It is a free, open-source launcher for Google's official Android Emulator, set up for running apps on Windows. That is the name you will see on the download and in the app window.</p></details>
+      <p>Yes. Androidzy runs the official Google Android Emulator with Google Play on Windows and is set up for everyday apps: a clean Android 14 device that starts in seconds, stays signed in, and has no game tooling in the way.</p></details>
 
     <details><summary>How do I run Android apps on Windows 11 now that Windows Subsystem for Android is gone?</summary>
-      <p>Microsoft ended support for Windows Subsystem for Android on March 5, 2025. Phone Link can mirror a supported phone and Google Play Games on PC covers games. For general apps you need an emulator: install Androidzy, accept Google's license on first run, sign in to Google Play and install your apps.</p></details>
+      <p>Microsoft ended support for Windows Subsystem for Android on March 5, 2025. Phone Link can mirror a supported phone and Google Play Games on PC covers games. For general apps you need an emulator: download Androidzy, accept Google's license on first run, sign in to Google Play and install your apps.</p></details>
 
-    <details><summary>Can I use it as a second phone to keep work and personal accounts apart?</summary>
-      <p>Yes. Androidzy gives you a separate Android 14 device on your PC with its own Google account, apps and data, so work chat, email and social accounts stay apart from your personal phone. Use it for accounts you own or are authorised to manage.</p></details>
+    <details><summary>Can I use it as a second phone for work?</summary>
+      <p>Yes. It gives you a separate Android 14 device on your PC with its own Google account, apps and data, so work chat, email and social accounts stay apart from your personal phone.</p></details>
 
-    <details><summary>Can I sign in to multiple accounts or run multiple instances?</summary>
-      <p>Within each app's own limits, yes. Instagram lets you add up to five accounts and Telegram supports several, and Android lets you add multiple Google accounts. Some services, such as WhatsApp, tie an account to a phone number, so a second account needs its own number. Androidzy currently runs one Android device at a time. Running several side by side is not supported yet.</p></details>
+    <details><summary>Can I use multiple accounts?</summary>
+      <p>Yes, within each app's own limits. Instagram lets you add up to five accounts and Telegram supports several, and Android lets you add multiple Google accounts. Some services, such as WhatsApp, tie an account to a phone number, so a second account needs its own number. Use it for accounts you own or are authorised to manage.</p></details>
+
+    <details><summary>Does it have keymapping or multiple instances like BlueStacks?</summary>
+      <p>No. Androidzy runs one clean Android device and leaves out game tooling on purpose. If you need keymapping, macros or several instances side by side, a gaming emulator such as BlueStacks, LDPlayer, MEmu or MuMu Player is the better choice.</p></details>
 
     <details><summary>Does it include Google Play?</summary>
-      <p>It uses Google's official Android 14 system image with Google Play. Nothing from Google is bundled with Androidzy. On first run it downloads the emulator and image from Google's servers (about 2 GB) after you accept Google's license, or it reuses an Android Studio SDK you already have.</p></details>
+      <p>Yes. It uses Google's official Android 14 system image with Google Play. On first run it downloads the emulator and image from Google (about 2 GB) after you accept Google's license, or it reuses an Android Studio SDK you already have.</p></details>
 
-    <details><summary>Will banking and streaming apps work in an emulator?</summary>
-      <p>Some may not. Banking, payment and DRM-protected streaming apps often check that they run on a certified physical phone and may block or limit any emulator. Androidzy does not try to hide that it is an emulator, so use a real phone for apps that require one.</p></details>
+    <details><summary>Will banking and streaming apps work?</summary>
+      <p>Some may not. Banking, payment and DRM-protected streaming apps often check that they run on a certified physical phone and may block any emulator. Use a real phone for apps that require one.</p></details>
 
     <details><summary>Is it free and safe?</summary>
-      <p>It is free. The launcher is open source under the MIT license, so you can read exactly what it does, and emulator usage metrics are switched off. The download is not code-signed yet, so Windows SmartScreen may show a warning. You can also build it yourself from source.</p></details>
+      <p>It is free, with no ads. The launcher is open source under the MIT license, so you can read exactly what it does, and emulator usage metrics are switched off. The download is not code-signed yet, so Windows SmartScreen may ask you to confirm: choose More info, then Run anyway.</p></details>
 
     <details><summary>What do I need to run it?</summary>
       <p>Windows 10 or 11 (64-bit), a CPU with virtualization turned on in the BIOS, the Windows Hypervisor Platform feature, 8 GB of RAM (4 GB goes to Android by default) and about 6 GB of free disk space.</p></details>
+  </div>
+</section>
+
+<section class="final" aria-labelledby="fin-h">
+  <div class="wrap">
+    <h2 id="fin-h">Your Android apps, on your PC, in minutes</h2>
+    <p class="sub">Free, open source and built for apps, not games.</p>
+    <div class="cta">
+      <a class="btn primary" href="https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe" rel="nofollow">Download for Windows &mdash; free</a>
+      <a class="btn ghost" href="https://github.com/dznye/Androidzy">View source on GitHub</a>
+    </div>
   </div>
 </section>
 
@@ -425,7 +423,7 @@ footer p{margin:6px 0 0;max-width:46em}
       <div>
         <strong>Androidzy by <a href="https://github.com/dznye">@dznye</a></strong>
         <p>A free Android emulator for Windows PC, built for running apps. MIT licensed.</p>
-        <p>Androidzy is an independent project and is not affiliated with, sponsored by or endorsed by Google, BlueStacks, MEmu, MuMu Player or LDPlayer. Android and Google Play are trademarks of Google LLC. BlueStacks, MEmu, MuMu Player and LDPlayer are trademarks of their respective owners and are named here only for comparison. The Android Emulator, platform tools and system image are provided by Google under the <a href="https://developer.android.com/studio/terms">Android SDK License Agreement</a>.</p>
+        <p>Not affiliated with, sponsored by or endorsed by Google, BlueStacks, MEmu, MuMu Player or LDPlayer. Android and Google Play are trademarks of Google LLC. BlueStacks, MEmu, MuMu Player and LDPlayer are trademarks of their respective owners, named here only for comparison. The Android Emulator, platform tools and system image are provided by Google under the <a href="https://developer.android.com/studio/terms">Android SDK License Agreement</a>.</p>
       </div>
       <div>
         <a href="https://github.com/dznye/Androidzy">Source on GitHub</a><br>
