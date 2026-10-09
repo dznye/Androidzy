@@ -83,6 +83,12 @@ namespace Androidzy
             return "background Wi-Fi/Bluetooth scanning off, network location off, error reporting off";
         }
 
+        // On a PC the emulator has a physical keyboard (your own), so keep Android's on-screen keyboard hidden.
+        public static void HideSoftKeyboard(string serial)
+        {
+            Adb(serial, "shell settings put secure show_ime_with_hard_keyboard 0", 10000);
+        }
+
         // The name shown in Settings > About phone > Device name, Bluetooth and the hotspot. Cosmetic only: the
         // build's model/fingerprint strings are not touched.
         public static string SetDeviceName(string serial, string name)

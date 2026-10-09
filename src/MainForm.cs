@@ -519,6 +519,8 @@ namespace Androidzy
 
                 say(Phone.SetUsLocation(serial) ? "> location set to the US (New York)" : "> could not set the location");
                 say("> privacy settings applied: " + Phone.HardenPrivacy(serial));
+                Phone.HideSoftKeyboard(serial);
+                say("> on-screen keyboard hidden (use your PC keyboard)");
                 say("> device name: " + Phone.SetDeviceName(serial, isFold ? "Pixel Fold" : "Androidzy"));
                 if (isFold)
                 {

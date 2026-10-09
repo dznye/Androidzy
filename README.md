@@ -32,7 +32,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 - **GPU profiles** - Dedicated, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
 - **Fast restarts** - quick-boot snapshots bring Android back in about a second.
 - **Zero setup** - uses the Android SDK you already have from Android Studio, or downloads what it needs from Google on first run.
-- **One small exe** - a single native Windows program (about 76 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
+- **One small exe** - a single native Windows program (about 77 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
 - Resolution presets, CPU/memory settings, cold boot, factory reset, per-launch logs.
 
 ## Requirements
@@ -43,7 +43,7 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 
 ## Getting started
 
-1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 76 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
+1. **[Download Androidzy.exe](https://github.com/dznye/Androidzy/releases/latest/download/Androidzy.exe)** (one 77 KB file; [release notes and SHA-256](https://github.com/dznye/Androidzy/releases/latest)), or build it yourself (below). Windows SmartScreen may warn because the exe is not code-signed yet.
 2. Run `Androidzy.exe`.
    - If an Android SDK with the Android 14 *Google Play* system image is found (Android Studio's default location, `ANDROID_HOME` or `ANDROID_SDK_ROOT`), it is used as is.
    - Otherwise a **First-run setup** panel offers to download the emulator, platform tools and system image (about 2 GB) from Google, after you accept Google's license.
