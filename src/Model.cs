@@ -9,10 +9,9 @@ namespace Androidzy
         public string Description;
         public string EmuGpu;   // value for the emulator's -gpu switch
         public int WinPref;     // Windows per-app GPU preference: 2 = high performance, 1 = power saving, 0 = no override
-        public int Vsync;               // display refresh lock, hw.lcd.vsync (0 = the default 60 Hz)
-        // Filled into the Screen / CPU / Memory boxes when the user picks this profile (0 = leave the box alone);
-        // the boxes can be changed afterwards and launch uses whatever they show.
-        public int SuggestW, SuggestH, SuggestCores, SuggestRamMb;
+        // Filled into the Screen / Frame rate / CPU / Memory boxes when the user picks this profile (0 = leave the
+        // box alone); the boxes can be changed afterwards and launch uses whatever they show.
+        public int SuggestW, SuggestH, SuggestFps, SuggestCores, SuggestRamMb;
         public bool SoftwareVideo;      // turn off the emulator's host ("goldfish") video decoders: apps get Android's own c2.android.* decoders
         public bool DirectNetwork;      // Wi-Fi without the netsim packet streamer: ~25 ms instead of ~110 ms per round trip
         // Emulator features fixed at boot; a snapshot taken with different ones must not be resumed.
@@ -23,7 +22,7 @@ namespace Androidzy
             if (DirectNetwork) f += " -feature -WiFiPacketStream";
             return f.Trim();
         }
-        public bool Adaptive;           // Governor: full power while Android is busy, efficiency mode when idle
+        public bool Classic;            // launch exactly as the verified 1.3.2 did: no memory guard, no governor, no CPU cap
         public override string ToString() { return Name; }
     }
 

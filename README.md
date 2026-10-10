@@ -26,10 +26,11 @@ It also fixes a real annoyance: on laptops with two GPUs (Intel + NVIDIA/AMD) th
 - **Starts clean** - on a new device the preinstalled apps are removed automatically (Play Store, Files, Settings and the Google search app stay). Reversible from Google Play; switch it off with *Remove preinstalled apps*.
 - **Share folder** - `Desktop\Androidzy Share` is created automatically. Anything dropped in it while the emulator runs is copied to the phone (photos to Pictures, videos to Movies, music to Music, the rest to Download, under `Androidzy/`) and registered with Android's media library. Put it anywhere with *Share folder ▾ > Move share folder...* (pick an existing folder or make a new one); *Use the Desktop folder again* switches back.
 - **US location on every boot** - GPS is set to New York each time Android starts, in device-only mode so Google's network location is not used.
-- **Pixel Fold by default** - the emulator gets a hinge with closed / half-open / open postures, so its fold controls appear (Extended controls > Virtual sensors > Device pose). *Google Pixel Fold 720p* (1104 x 920) keeps the same layout and fold controls with a quarter of the pixels to draw, which makes video apps much lighter.
+- **Pixel Fold by default** - the emulator gets a hinge with closed / half-open / open postures, so its fold controls appear (Extended controls > Virtual sensors > Device pose).
 - **Privacy settings** - background Wi-Fi/Bluetooth scanning and error reporting are switched off. This limits what the device volunteers; it does not make it anonymous.
 
-- **Profiles** - Dedicated, TikTok, Everyday apps, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
+- **Phone users** - *Phone users ▾* adds named Android users on the same phone (up to 3 extra): each has its own app data and accounts, so the same app can be signed in to a different account in each. Your installed apps are copied across with empty data; switching and removing are in the same menu.
+- **Profiles** - Dedicated, TikTok, Integrated, Windows default, or Software. OpenGL *and* Vulkan follow the same GPU; the status line shows which one is in use.
 - **Fast restarts** - quick-boot snapshots bring Android back in about a second.
 - **Zero setup** - uses the Android SDK you already have from Android Studio, or downloads what it needs from Google on first run.
 - **One small exe** - a single native Windows program (about 75 KB) built with the C# compiler that ships with Windows. No installer, no runtime to install.
@@ -56,15 +57,13 @@ Settings, the virtual device and any downloaded components live in `%LOCALAPPDAT
 | Profile | What it does |
 |---|---|
 | **Dedicated GPU** | Tells Windows to run the emulator on the high-performance GPU and pins Vulkan to the same one. Default on machines with an NVIDIA/AMD card. |
-| **TikTok (smooth video)** | Dedicated GPU, display locked at 60 fps. Turns off the emulator's `c2.goldfish.*` host video decoders (`-feature -HardwareDecoder`), which stall when TikTok swaps players between videos, and the netsim Wi-Fi relay (`-feature -WiFiPacketStream`), which added ~85 ms to every round trip. Adaptive power (below). Selecting it fills in *Pixel Fold 720p*, 4 cores and 8 GB. Measurements: [RESEARCH-TIKTOK.md](RESEARCH-TIKTOK.md). |
-| **Everyday apps (quiet)** | For chat, email and browsing: power-saving GPU, display locked at 30 fps, direct Wi-Fi, adaptive power. Selecting it fills in *Pixel Fold 720p*, 4 cores and 4 GB. Not for video feeds or games. |
+| **TikTok (smooth video)** | The one setup measured smooth: a steady 29.7-30.2 fps for 3 minutes with no freezes, and editing and uploading worked (Androidzy 1.3.2). Turns off the emulator's `c2.goldfish.*` host video decoders (`-feature -HardwareDecoder`), which stall when TikTok swaps players between videos, and the netsim Wi-Fi relay (`-feature -WiFiPacketStream`), which added ~85 ms to every round trip. Fills in Pixel Fold, 60 fps, 4 cores and 8 GB and adds nothing else: no CPU cap, no priority switching, no memory guard. Needs Windows to have RAM to spare: close browsers and other big apps. Measurements: [RESEARCH-TIKTOK.md](RESEARCH-TIKTOK.md). |
 | **Integrated GPU** | Same, for the power-saving GPU. Cooler and quieter, slower. |
 | **Windows default** | Removes the override; Windows and the emulator choose. |
 | **Software renderer** | SwiftShader/ANGLE on the CPU. Slow; only for broken GPU drivers. |
 
-Profiles only *suggest* a screen, cores and memory: the boxes can be changed after picking one, and Launch uses whatever they show. Profiles that change boot-time features (TikTok, Everyday) cold-boot once when you switch to or from them.
+Profiles only *suggest* a screen, frame rate, cores and memory: the boxes can be changed after picking one, and Launch uses whatever they show. Switching to or from the TikTok profile cold-boots once, because it changes boot-time features.
 
-**Adaptive power** (TikTok and Everyday): Androidzy reads Android's own CPU use every 1.5 s. While Android is busy the emulator runs at above-normal priority with Windows power throttling off and normal memory priority. After 20 s idle it drops to below-normal priority, Windows efficiency mode and low memory priority, so if the PC runs short of RAM, Windows takes it from the idle emulator before your other apps. The phone's RAM itself is fixed while it runs: the emulator's QEMU has no free-page reporting, so pick a memory size that leaves Windows room (the log shows how much is left).
 
 The override is the same per-app setting as *Settings > System > Display > Graphics*, written under `HKCU\Software\Microsoft\DirectX\UserGpuPreferences` for the emulator executables only. Choose **Windows default** to remove it.
 
@@ -76,6 +75,7 @@ The override is the same per-app setting as *Settings > System > Display > Graph
 |---|---|
 | `timezone=America/New_York` | Phone time zone (IANA id), set on every boot and passed as `-timezone`. Empty = the PC's zone. |
 | `private_dns=one.one.one.one` | Turns on Android's Private DNS (DNS over TLS) with this host, so lookups are encrypted. It does not change your IP. |
+| `memory_guard=1` | Default on (not used by the TikTok profile). At each launch the phone's memory is lowered (never below the 4 GB this Android 14 image needs) when Windows has less than the phone plus ~3.5 GB available, because a phone that Windows has to swap to disk stutters whatever the other settings. Your saved choice is not overwritten. `0` turns it off. |
 | `http_proxy=host:port` | Passed to the emulator as `-http-proxy`. Only TCP goes through it; UDP (QUIC) does not, so a VPN on the PC is the way to change the IP everything uses. |
 
 A `src\Local.cs` (ignored by git) can implement `Settings.LocalDefaults()` to bake personal defaults into your own build; values in the ini still win.
@@ -83,7 +83,7 @@ A `src\Local.cs` (ignored by git) can implement `Settings.LocalDefaults()` to ba
 ## Command line
 
 ```
-Androidzy.exe [--launch] [--profile dedicated|tiktok|everyday|integrated|auto|software]
+Androidzy.exe [--launch] [--profile dedicated|tiktok|integrated|auto|software]
               [--res N] [--cold] [--no-save] [--headless] [--verbose]
               [--accept-license] [--own-copy]
 ```

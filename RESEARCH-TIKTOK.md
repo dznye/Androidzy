@@ -1,6 +1,23 @@
 # TikTok on the Android Emulator: what lagged and what fixed it
 
-Notes from tuning Androidzy's **TikTok (smooth video)** profile (Androidzy 1.3 - 1.5). Every number below was measured, on one PC, with the tools listed at the end. Where something was not measured, it says so.
+Notes from tuning Androidzy's **TikTok (smooth video)** profile (Androidzy 1.3 - 1.8). Every number below was measured, on one PC, with the tools listed at the end. Where something was not measured, it says so.
+
+## Final state (1.8)
+
+Only the setup that was measured smooth is kept as the **TikTok (smooth video)** profile: full Pixel Fold (2208 x 1840), 60 fps, 4 cores, 8 GB, goldfish decoders off (`-feature -HardwareDecoder`), netsim Wi-Fi relay off (`-feature -WiFiPacketStream`), nothing else. Measured in 1.3.2: a steady 29.7-30.2 fps for 3 minutes with no freezes, and TikTok's editor and upload worked.
+
+Removed because they froze or lagged when tested, or were never measured warmed up:
+
+| Removed | What happened |
+|---|---|
+| Adaptive governor, 6 cores, efficiency mode when idle | First touch after a pause felt slow; never shown to help |
+| Hard CPU cap (70%, Windows job object) | Scrolling got worse right after it was added; a hard cap pauses all emulator threads in bursts |
+| 720p screens and 30 fps profile | Only measured right after a cold boot (13 fps, 15% stutter); no warmed-up run |
+| "Play Games style" profile (1920 x 1080, 213 dpi, above-normal priority) | Not measured; GPGDE itself was not smooth on this PC under the same load (below) |
+
+**GPGDE under the same load:** with the PC at 1.5 GB free RAM and other apps open, GPGDE ran TikTok at 3.6 fps with 62% of frames 100 ms or more apart, its 4 virtual CPUs at 100%, using TikTok's own ByteVC1 software decoder (the same decoder TikTok uses in Androidzy). What GPGDE has that this emulator cannot copy: dynamic memory (`--mem=6144 --init-mem=3072 --flex-mem-chunk-size=64`, sized from free RAM at launch) and ANGLE on Vulkan. The common factor in every laggy run, in both emulators, was Windows short of RAM (under ~2 GB available) or the CPU saturated: close browsers and other big apps before using TikTok.
+
+**Second accounts:** *Phone users* adds separate Android users on the same phone (up to 3 extra), each with its own TikTok data and login.
 
 **Test PC:** Intel Core i5-11300H (4 cores / 8 threads), NVIDIA GeForce RTX 3050 Laptop + Intel Iris Xe, 16 GB RAM, Windows 11, mains power. Android 14 (API 34) Google Play x86_64 image, Android Emulator 37.x, Pixel Fold screen (2208 x 1840) unless noted.
 

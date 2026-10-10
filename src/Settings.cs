@@ -9,6 +9,10 @@ namespace Androidzy
         public int Res = Host.DefaultRes;
         public int Cores = Math.Max(2, Math.Min(6, Environment.ProcessorCount / 2));
         public int RamMb = 4096;
+        public int RunRamMb;               // memory actually given to this launch after the memory guard (not saved; 0 = RamMb)
+        public int EffRamMb { get { return RunRamMb > 0 ? RunRamMb : RamMb; } }
+        public bool MemoryGuard = true;    // shrink the phone's memory when Windows is short of RAM (memory_guard=0 turns it off)
+        public int Fps = 60;               // display refresh lock (hw.lcd.vsync)
         public bool SaveOnExit = true;
         public bool Debloat = true;
         public bool LicenseAccepted;
@@ -41,6 +45,8 @@ namespace Androidzy
                             case "resolution": if (int.TryParse(v, out n)) s.Res = n; break;
                             case "cores": if (int.TryParse(v, out n)) s.Cores = n; break;
                             case "ram_mb": if (int.TryParse(v, out n)) s.RamMb = n; break;
+                            case "fps": if (int.TryParse(v, out n)) s.Fps = n; break;
+                            case "memory_guard": s.MemoryGuard = v != "0"; break;
                             case "save_on_exit": s.SaveOnExit = v != "0"; break;
                             case "debloat": s.Debloat = v != "0"; break;
                             case "sdk_license_accepted": s.LicenseAccepted = v == "1"; break;
@@ -56,6 +62,7 @@ namespace Androidzy
             if (s.Res < 0 || s.Res >= Host.Resolutions.Length) s.Res = Host.DefaultRes;
             s.Cores = Math.Max(1, Math.Min(Environment.ProcessorCount, s.Cores));
             if (Array.IndexOf(Host.RamChoicesMb, s.RamMb) < 0) s.RamMb = 4096;
+            if (Array.IndexOf(Host.FpsChoices, s.Fps) < 0) s.Fps = 60;
             return s;
         }
 
@@ -67,7 +74,7 @@ namespace Androidzy
                 File.WriteAllLines(Paths.SettingsFile, new string[]
                 {
                     "profile=" + Profile, "resolution=" + Res, "cores=" + Cores,
-                    "ram_mb=" + RamMb, "save_on_exit=" + (SaveOnExit ? "1" : "0"), "debloat=" + (Debloat ? "1" : "0"),
+                    "ram_mb=" + RamMb, "fps=" + Fps, "memory_guard=" + (MemoryGuard ? "1" : "0"), "save_on_exit=" + (SaveOnExit ? "1" : "0"), "debloat=" + (Debloat ? "1" : "0"),
                     "sdk_license_accepted=" + (LicenseAccepted ? "1" : "0"),
                     "boot_features=" + BootFeatures,
                     "share_dir=" + ShareDir,

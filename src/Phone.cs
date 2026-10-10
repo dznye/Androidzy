@@ -117,12 +117,85 @@ namespace Androidzy
             return name;
         }
 
-        // Removes every app with a launcher icon except the ones in Keep, for the current user only.
+        // ---- phone users ----------------------------------------------------------------------------------
+        // Android's own multi-user support: every user has separate app data, accounts and settings, so one app
+        // (TikTok, for example) can be signed in to a different account in each user. Apps are shared, not
+        // installed twice.
+
+        public sealed class User { public int Id; public string Name; public bool Running; }
+
+        // "UserInfo{0:Owner:c13} running" lines from pm list users
+        public static List<User> Users(string serial)
+        {
+            List<User> list = new List<User>();
+            foreach (string line in Adb(serial, "shell pm list users", 15000).Split('\n'))
+            {
+                System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(line, @"UserInfo\{(\d+):([^:}]*):");
+                if (m.Success) list.Add(new User { Id = int.Parse(m.Groups[1].Value), Name = m.Groups[2].Value, Running = line.Contains("running") });
+            }
+            return list;
+        }
+
+        public static int CurrentUser(string serial)
+        {
+            int id; return int.TryParse(Adb(serial, "shell am get-current-user", 10000).Trim(), out id) ? id : 0;
+        }
+
+        public static int MaxUsers(string serial)
+        {
+            System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(Adb(serial, "shell pm get-max-users", 10000), @"(\d+)");
+            return m.Success ? int.Parse(m.Groups[1].Value) : 1;
+        }
+
+        // Returns the new user's id, or -1 with Android's message in error.
+        public static int CreateUser(string serial, string name, out string error)
+        {
+            string o = Adb(serial, "shell pm create-user " + Sh(name), 60000);
+            System.Text.RegularExpressions.Match m = System.Text.RegularExpressions.Regex.Match(o, @"created user id (\d+)");
+            error = m.Success ? "" : o.Trim();
+            return m.Success ? int.Parse(m.Groups[1].Value) : -1;
+        }
+
+        // Makes the apps you installed yourself (TikTok and the like) available to another user, with empty data.
+        public static int CopyApps(string serial, int fromUser, int toUser)
+        {
+            int n = 0;
+            foreach (string line in Adb(serial, "shell pm list packages -3 --user " + fromUser, 20000).Split('\n'))
+            {
+                string pkg = line.Trim().Replace("package:", "");
+                if (pkg.Length == 0) continue;
+                if (Adb(serial, "shell pm install-existing --user " + toUser + " " + pkg, 30000).IndexOf("installed for user", StringComparison.OrdinalIgnoreCase) >= 0) n++;
+            }
+            return n;
+        }
+
+        // The per-user settings Androidzy applies on boot (the global ones already cover every user).
+        public static void PrepareUser(string serial, int user)
+        {
+            Adb(serial, "shell settings --user " + user + " put secure location_mode 1", 10000);
+            Adb(serial, "shell settings --user " + user + " put secure show_ime_with_hard_keyboard 0", 10000);
+            Adb(serial, "shell settings --user " + user + " put secure send_action_app_error 0", 10000);
+        }
+
+        public static bool SwitchUser(string serial, int user)
+        {
+            return Adb(serial, "shell am switch-user " + user, 30000).Trim().Length == 0;
+        }
+
+        // Deletes the user and everything in it (apps' data, accounts, files). Cannot be undone.
+        public static bool RemoveUser(string serial, int user)
+        {
+            return Adb(serial, "shell pm remove-user " + user, 60000).IndexOf("Success", StringComparison.OrdinalIgnoreCase) >= 0;
+        }
+
+        // Removes every app with a launcher icon except the ones in Keep, for one user only (0 = the owner).
         // Reversible: "cmd package install-existing <package>" or simply install it again from Google Play.
-        public static int Debloat(string serial, Action<string> log)
+        public static int Debloat(string serial, Action<string> log) { return Debloat(serial, log, 0); }
+
+        public static int Debloat(string serial, Action<string> log, int user)
         {
             List<string> pkgs = new List<string>();
-            string o = Adb(serial, "shell \"cmd package query-activities --brief -a android.intent.action.MAIN -c android.intent.category.LAUNCHER\"", 20000);
+            string o = Adb(serial, "shell \"cmd package query-activities --brief --user " + user + " -a android.intent.action.MAIN -c android.intent.category.LAUNCHER\"", 20000);
             foreach (string line in o.Split('\n'))
             {
                 string l = line.Trim();
@@ -135,7 +208,7 @@ namespace Androidzy
             int removed = 0;
             foreach (string pkg in pkgs)
             {
-                string r = Adb(serial, "shell pm uninstall --user 0 " + pkg, 30000);
+                string r = Adb(serial, "shell pm uninstall --user " + user + " " + pkg, 30000);
                 if (r.IndexOf("Success", StringComparison.OrdinalIgnoreCase) >= 0) removed++;
                 else log("> could not remove " + pkg);
             }

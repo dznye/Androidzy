@@ -16,7 +16,7 @@ namespace Androidzy
         readonly string[] gpus = Host.DetectGpus();
         readonly Options cli;
 
-        ComboBox cbProfile, cbRes, cbRam;
+        ComboBox cbProfile, cbRes, cbRam, cbFps;
         NumericUpDown nudCores;
         CheckBox chkCold, chkSave, chkWipe, chkDebloat;
         ShareSync share;
@@ -39,7 +39,6 @@ namespace Androidzy
         bool booted;
         string gpuInUse = "";
         GpuProfile runProfile;
-        Governor governor;
         StreamWriter logWriter;
         readonly List<string> recent = new List<string>();
 
@@ -188,8 +187,11 @@ namespace Androidzy
             nudCores.Minimum = 1; nudCores.Maximum = Environment.ProcessorCount;
             cbRam = new ComboBox(); cbRam.DropDownStyle = ComboBoxStyle.DropDownList;
             foreach (int mb in Host.RamChoicesMb) cbRam.Items.Add((mb / 1024) + " GB");
+            cbFps = new ComboBox(); cbFps.DropDownStyle = ComboBoxStyle.DropDownList;
+            foreach (int f in Host.FpsChoices) cbFps.Items.Add(f == 60 ? "60 fps (smoothest scrolling)" : "30 fps (lighter: video feeds, everyday apps)");
             TableLayoutPanel tp = MakeTable();
             AddRow(tp, "Screen", cbRes, 28);
+            AddRow(tp, "Frame rate", cbFps, 28);
             AddRow(tp, "CPU cores", nudCores, 28);
             AddRow(tp, "Memory", cbRam, 28);
             AddRoot(root, MakeGroup("Display and performance", tp), SizeType.AutoSize);
@@ -209,7 +211,7 @@ namespace Androidzy
             btnLaunch.Font = new Font("Segoe UI Semibold", 10F);
             btnStop = new Button(); btnStop.Text = "Stop"; btnStop.Size = new Size(90, 34); btnStop.Enabled = false;
             Button btnLogs = new Button(); btnLogs.Text = "Open logs"; btnLogs.Size = new Size(100, 34);
-            Button btnShare = new Button(); btnShare.Text = "Share folder ▾"; btnShare.Size = new Size(120, 34);
+            Button btnShare = new Button(); btnShare.Text = "Share folder \u25BE"; btnShare.Size = new Size(120, 34);
             btnLaunch.Click += delegate { Launch(); };
             btnStop.Click += delegate { StopAsync(); };
             btnLogs.Click += delegate { try { Directory.CreateDirectory(Paths.LogDir); Process.Start(Paths.LogDir); } catch { } };
@@ -219,9 +221,12 @@ namespace Androidzy
             ToolStripItem miDefault = shareMenu.Items.Add("Use the Desktop folder again", null, delegate { SetShareFolder(""); });
             shareMenu.Opening += delegate { miDefault.Enabled = st.ShareDir.Length > 0; };
             btnShare.Click += delegate { shareMenu.Show(btnShare, new Point(0, btnShare.Height)); };
+            Button btnUsers = new Button(); btnUsers.Text = "Phone users \u25BE"; btnUsers.Size = new Size(125, 34);
+            ContextMenuStrip usersMenu = new ContextMenuStrip();
+            btnUsers.Click += delegate { FillUsersMenu(usersMenu); usersMenu.Show(btnUsers, new Point(0, btnUsers.Height)); };
             FlowLayoutPanel btns = new FlowLayoutPanel();
             btns.AutoSize = true; btns.Margin = new Padding(3, 10, 3, 4);
-            btns.Controls.Add(btnLaunch); btns.Controls.Add(btnStop); btns.Controls.Add(btnShare); btns.Controls.Add(btnLogs);
+            btns.Controls.Add(btnLaunch); btns.Controls.Add(btnStop); btns.Controls.Add(btnShare); btns.Controls.Add(btnUsers); btns.Controls.Add(btnLogs);
             AddRoot(root, btns, SizeType.AutoSize);
 
             lblStatus = new Label(); lblStatus.AutoSize = true; lblStatus.Margin = new Padding(6, 4, 3, 6);
@@ -242,6 +247,7 @@ namespace Androidzy
             cbRes.SelectedIndex = (cli.ResIndex >= 0 && cli.ResIndex < Host.Resolutions.Length) ? cli.ResIndex : st.Res;
             nudCores.Value = st.Cores;
             cbRam.SelectedIndex = Array.IndexOf(Host.RamChoicesMb, st.RamMb);
+            cbFps.SelectedIndex = Array.IndexOf(Host.FpsChoices, st.Fps);
             chkSave.Checked = st.SaveOnExit && !cli.NoSave;
             chkDebloat.Checked = st.Debloat;
             chkCold.Checked = cli.Cold;
@@ -257,6 +263,8 @@ namespace Androidzy
                 if (p.SuggestCores > 0) nudCores.Value = Math.Max(nudCores.Minimum, Math.Min(nudCores.Maximum, p.SuggestCores));
                 int m = Array.IndexOf(Host.RamChoicesMb, p.SuggestRamMb);
                 if (m >= 0) cbRam.SelectedIndex = m;
+                int fi = Array.IndexOf(Host.FpsChoices, p.SuggestFps);
+                if (fi >= 0) cbFps.SelectedIndex = fi;
             };
             ShowProfileInfo();
 
@@ -274,6 +282,110 @@ namespace Androidzy
         }
 
         void SetStatus(string text) { lblStatus.Text = text; }
+
+        // ---- phone users ---------------------------------------------------------------------------
+        // Separate Android users on the one phone: each has its own app data and accounts, so the same app can be
+        // signed in to a different account in each. Built fresh every time the menu opens.
+        void FillUsersMenu(ContextMenuStrip menu)
+        {
+            menu.Items.Clear();
+            if (proc == null || !booted) { menu.Items.Add("Start the phone first").Enabled = false; return; }
+            string serial = "emulator-" + port;
+            List<Phone.User> users; int current, max;
+            Cursor = Cursors.WaitCursor;
+            try { users = Phone.Users(serial); current = Phone.CurrentUser(serial); max = Phone.MaxUsers(serial); }
+            finally { Cursor = Cursors.Default; }
+
+            foreach (Phone.User u in users)
+            {
+                Phone.User user = u;
+                ToolStripMenuItem it = new ToolStripMenuItem(u.Name + (u.Id == 0 ? "  (owner)" : ""));
+                it.Checked = u.Id == current;
+                it.Click += delegate { if (user.Id != current) SwitchUserAsync(serial, user); };
+                menu.Items.Add(it);
+            }
+            menu.Items.Add(new ToolStripSeparator());
+            ToolStripItem add = menu.Items.Add(users.Count >= max ? "Add user...  (Android's limit of " + max + " reached)" : "Add user...");
+            add.Enabled = users.Count < max;
+            add.Click += delegate { AddUser(serial); };
+            ToolStripMenuItem remove = new ToolStripMenuItem("Remove user");
+            foreach (Phone.User u in users)
+            {
+                if (u.Id == 0) continue;
+                Phone.User user = u;
+                remove.DropDownItems.Add(u.Name, null, delegate { RemoveUser(serial, user, current); });
+            }
+            remove.Enabled = remove.DropDownItems.Count > 0;
+            menu.Items.Add(remove);
+        }
+
+        void AddUser(string serial)
+        {
+            string name = AskText("Add phone user", "Name for the new user (letters, numbers, spaces, - _ .):", "");
+            if (name == null) return;
+            name = name.Trim();
+            if (!Regex.IsMatch(name, @"^[A-Za-z0-9 _.\-]{1,30}$")) { Error("Use 1-30 letters, numbers, spaces, - _ or ."); return; }
+            bool debloat = chkDebloat.Checked;
+            Action<string> say = m => PostToUi(() => AppendLog(m));
+            say("> adding phone user \"" + name + "\"...");
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                string err;
+                int id = Phone.CreateUser(serial, name, out err);
+                if (id < 0) { say("> could not add the user: " + err); return; }
+                if (debloat) Phone.Debloat(serial, delegate { }, id);
+                int apps = Phone.CopyApps(serial, 0, id);
+                Phone.PrepareUser(serial, id);
+                say("> phone user \"" + name + "\" added (" + apps + " of your apps copied, with their own empty data)");
+                PostToUi(() =>
+                {
+                    if (MessageBox.Show(this, "Switch to \"" + name + "\" now?\r\n\r\nThe first switch shows Android's short setup for the new user.",
+                            "Phone users", MessageBoxButtons.YesNo, MessageBoxIcon.Question) == DialogResult.Yes)
+                        SwitchUserAsync(serial, new Phone.User { Id = id, Name = name });
+                });
+            });
+        }
+
+        void SwitchUserAsync(string serial, Phone.User u)
+        {
+            AppendLog("> switching to phone user \"" + u.Name + "\"...");
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                bool ok = Phone.SwitchUser(serial, u.Id);
+                PostToUi(() => AppendLog(ok ? "> now using \"" + u.Name + "\"" : "> could not switch to \"" + u.Name + "\""));
+            });
+        }
+
+        void RemoveUser(string serial, Phone.User u, int current)
+        {
+            if (MessageBox.Show(this, "Remove \"" + u.Name + "\" from the phone?\r\n\r\nThis deletes everything in that user: app data, signed-in accounts and files. It cannot be undone.",
+                    "Remove phone user", MessageBoxButtons.YesNo, MessageBoxIcon.Warning, MessageBoxDefaultButton.Button2) != DialogResult.Yes)
+                return;
+            AppendLog("> removing phone user \"" + u.Name + "\"...");
+            ThreadPool.QueueUserWorkItem(delegate
+            {
+                if (u.Id == current) Phone.SwitchUser(serial, 0);   // Android cannot remove the user in use
+                bool ok = Phone.RemoveUser(serial, u.Id);
+                PostToUi(() => AppendLog(ok ? "> removed \"" + u.Name + "\"" : "> could not remove \"" + u.Name + "\""));
+            });
+        }
+
+        // A one-line text prompt (WinForms has none built in).
+        string AskText(string title, string prompt, string value)
+        {
+            using (Form f = new Form())
+            {
+                f.Text = title; f.FormBorderStyle = FormBorderStyle.FixedDialog; f.MinimizeBox = f.MaximizeBox = false;
+                f.StartPosition = FormStartPosition.CenterParent; f.ClientSize = new Size(380, 110); f.Font = Font;
+                Label l = new Label(); l.Text = prompt; l.SetBounds(12, 12, 356, 20);
+                TextBox t = new TextBox(); t.Text = value; t.SetBounds(12, 36, 356, 24);
+                Button ok = new Button(); ok.Text = "OK"; ok.DialogResult = DialogResult.OK; ok.SetBounds(212, 72, 75, 28);
+                Button cancel = new Button(); cancel.Text = "Cancel"; cancel.DialogResult = DialogResult.Cancel; cancel.SetBounds(293, 72, 75, 28);
+                f.Controls.AddRange(new Control[] { l, t, ok, cancel });
+                f.AcceptButton = ok; f.CancelButton = cancel;
+                return f.ShowDialog(this) == DialogResult.OK ? t.Text : null;
+            }
+        }
 
         // Pick (or create, with "Make New Folder") any folder on the PC as the share folder.
         void ChooseShareFolder()
@@ -407,7 +519,7 @@ namespace Androidzy
         {
             btnLaunch.Enabled = !running && sdkReady;
             btnStop.Enabled = running;
-            cbProfile.Enabled = cbRes.Enabled = nudCores.Enabled = cbRam.Enabled = !running;
+            cbProfile.Enabled = cbRes.Enabled = nudCores.Enabled = cbRam.Enabled = cbFps.Enabled = !running;
             chkCold.Enabled = chkWipe.Enabled = chkSave.Enabled = chkDebloat.Enabled = !running;
         }
 
@@ -428,9 +540,13 @@ namespace Androidzy
             Res res = Host.Resolutions[cbRes.SelectedIndex];
             st.Profile = prof.Id; st.Res = cbRes.SelectedIndex; st.Cores = (int)nudCores.Value;
             st.RamMb = Host.RamChoicesMb[cbRam.SelectedIndex];
+            st.Fps = Host.FpsChoices[cbFps.SelectedIndex];
             if (!cli.NoSave) st.SaveOnExit = chkSave.Checked;   // --no-save is a one-off, never persisted
             st.Debloat = chkDebloat.Checked;
             st.Save();
+            // memory guard: your choice stays saved, but this launch gets a size Windows can actually spare
+            long availMb = 0;
+            st.RunRamMb = (st.MemoryGuard && !prof.Classic) ? Host.GuardRam(st.RamMb, out availMb) : 0;
             if (chkWipe.Checked) { try { File.Delete(Paths.DebloatFlag); } catch { } }   // a factory reset brings the apps back
 
             try
@@ -444,14 +560,16 @@ namespace Androidzy
             if (port < 0) { Error("No free emulator console port (5554-5584). Close another emulator and retry."); return; }
 
             StringBuilder a = new StringBuilder();
-            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, st.Cores, st.RamMb);
+            a.AppendFormat("-avd {0} -port {1} -gpu {2} -cores {3} -memory {4}", Paths.AvdName, port, prof.EmuGpu, st.Cores, st.EffRamMb);
             a.Append(" -no-boot-anim -no-metrics -netdelay none -netspeed full -accel on");
             if (st.HttpProxy.Length > 0) a.Append(" -http-proxy " + st.HttpProxy);
             if (st.Timezone.Length > 0) a.Append(" -timezone " + st.Timezone);   // cold boots start in this zone too
             string feats = prof.BootFeatures();
             if (feats.Length > 0) a.Append(" " + feats);
-            bool featsSwitched = feats != st.BootFeatures;
-            st.BootFeatures = feats; st.Save();
+            // a snapshot only resumes at the same memory size, so a size change counts as a boot feature change
+            string bootKey = (feats + " mem=" + st.EffRamMb).Trim();
+            bool featsSwitched = bootKey != st.BootFeatures;
+            st.BootFeatures = bootKey; st.Save();
             if (chkCold.Checked || chkWipe.Checked || featsSwitched) a.Append(" -no-snapshot-load");
             if (!chkSave.Checked) a.Append(" -no-snapshot-save");
             if (chkWipe.Checked) a.Append(" -wipe-data");
@@ -488,14 +606,15 @@ namespace Androidzy
             if (prof.SoftwareVideo) AppendLog("> video: Android software decoders (goldfish host decoders off)");
             if (prof.DirectNetwork) AppendLog("> network: direct Wi-Fi (netsim packet streamer off)");
             if (featsSwitched) AppendLog("> boot features changed: cold boot this time");
-            AppendLog("> display: " + res.W + " x " + res.H + ", locked at " + (prof.Vsync > 0 ? prof.Vsync : 60) + " fps");
-            long pcMb = Host.TotalRamMb();
-            if (pcMb > 0)
-            {
-                long left = pcMb - st.RamMb;
-                AppendLog("> memory: " + (st.RamMb / 1024) + " GB for the phone, about " + (left / 1024) + " GB left for Windows and your apps" +
-                          (left < 8192 ? " - if the PC runs short, video stutters; close other apps or pick less memory" : ""));
-            }
+            AppendLog("> display: " + res.W + " x " + res.H + ", locked at " + st.Fps + " fps");
+            if (st.EffRamMb != st.RamMb)
+                AppendLog("> memory guard: Windows has only " + (availMb / 1024.0).ToString("0.0") + " GB free, so the phone gets " + (st.EffRamMb / 1024) +
+                          " GB instead of " + (st.RamMb / 1024) + " GB (a bigger phone would be swapped to disk and stutter).");
+            if (availMb > 0 && !prof.Classic && availMb < Host.MinPhoneRamMb + 1536)
+                AppendLog("> warning: Windows is short of memory even for a 4 GB phone (the minimum for this Android). Close browsers and other big apps, or the phone will be swapped to disk and video will stutter.");
+            else if (availMb > 0)
+                AppendLog("> memory: " + (st.EffRamMb / 1024) + " GB for the phone; Windows has " + (availMb / 1024.0).ToString("0.0") + " GB available" +
+                          (st.MemoryGuard && !prof.Classic ? "" : " (memory guard off)"));
             runProfile = prof;
 
             proc = new Process();
@@ -559,18 +678,6 @@ namespace Androidzy
             Thread t = new Thread(delegate() { PostBoot(p, deb, fold); });
             t.IsBackground = true;
             t.Start();
-            if (runProfile != null && runProfile.Adaptive)
-            {
-                StopGovernor();
-                governor = new Governor("emulator-" + p, proc.Id, m => PostToUi(() => AppendLog(m)));
-                governor.Start();
-                AppendLog("> performance: adaptive (boost while Android is busy, efficiency mode after 20 s idle)");
-            }
-        }
-
-        void StopGovernor()
-        {
-            if (governor != null) { governor.Dispose(); governor = null; }
         }
 
         // Asks Android itself whether it has finished booting.
@@ -642,7 +749,6 @@ namespace Androidzy
         void OnExited()
         {
             StopShare();
-            StopGovernor();
             int code = 0;
             try { code = proc.ExitCode; } catch { }
             proc = null;
